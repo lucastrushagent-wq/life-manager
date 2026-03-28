@@ -11,6 +11,7 @@ interface Props {
 
 export function AddTodoForm({ onAdd, onCancel }: Props) {
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [priority, setPriority] = useState<Priority>('medium')
   const [tags, setTags] = useState<string[]>([])
@@ -31,7 +32,7 @@ export function AddTodoForm({ onAdd, onCancel }: Props) {
 
   function handleSubmit() {
     if (!title.trim()) return
-    onAdd({ title: title.trim(), priority, tags, dueDate: dueDate || undefined })
+    onAdd({ title: title.trim(), description: description.trim() || undefined, priority, tags, dueDate: dueDate || undefined })
   }
 
   return (
@@ -44,6 +45,14 @@ export function AddTodoForm({ onAdd, onCancel }: Props) {
         onChange={e => setTitle(e.target.value)}
         onKeyDown={e => e.key === 'Enter' && handleSubmit()}
         className="w-full text-sm outline-none placeholder-gray-400 mb-3 font-medium text-gray-800"
+      />
+
+      <textarea
+        placeholder="Description (optional)"
+        value={description}
+        onChange={e => setDescription(e.target.value)}
+        rows={2}
+        className="w-full text-sm outline-none placeholder-gray-400 mb-3 text-gray-600 resize-none border border-gray-200 rounded px-2 py-1.5 focus:border-blue-400"
       />
 
       <div className="flex gap-3 mb-3">

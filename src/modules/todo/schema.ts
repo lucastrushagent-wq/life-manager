@@ -4,6 +4,7 @@ import type { Todo } from './types'
 export const TodoSchema = z.object({
   id: z.string(),
   title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
   completed: z.boolean(),
   dueDate: z.string().optional(),
   priority: z.enum(['high', 'medium', 'low']),
