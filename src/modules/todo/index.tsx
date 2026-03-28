@@ -4,7 +4,7 @@ import { TodoModule } from './components/TodoModule'
 
 export const todoTab: TabConfig = {
   id: 'todo',
-  label: 'To-Do',
+  label: 'To-do',
   icon: CheckSquare,
   component: TodoModule,
 }
