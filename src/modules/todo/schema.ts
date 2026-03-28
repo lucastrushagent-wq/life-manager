@@ -6,6 +6,8 @@ export const TodoSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   completed: z.boolean(),
   dueDate: z.string().optional(),
+  priority: z.enum(['high', 'medium', 'low']),
+  tags: z.array(z.string()),
   createdAt: z.string(),
 }) satisfies z.ZodType<Todo>
 
