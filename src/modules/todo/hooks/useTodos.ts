@@ -22,6 +22,47 @@ function sortTodos(todos: Todo[], field: SortField, dir: SortDir): Todo[] {
   })
 }
 
+function formatTodosForEmail(todos: Todo[]): string {
+  const incomplete = todos.filter(t => !t.completed)
+  const complete = todos.filter(t => t.completed)
+
+  function formatTodo(todo: Todo): string {
+    const check = todo.completed ? '[x]' : '[ ]'
+    let line = `${check} ${todo.title}`
+    if (todo.dueDate) {
+      const due = new Date(todo.dueDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      due.setHours(0, 0, 0, 0)
+      const days = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      const daysLabel = days < 0 ? `${Math.abs(days)}d overdue` : days === 0 ? 'due today' : `${days}d left`
+      line += ` — Due: ${new Date(todo.dueDate).toLocaleDateString()} (${daysLabel})`
+    }
+    line += ` — Priority: ${todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}`
+    if (todo.tags.length > 0) line += ` — Tags: ${todo.tags.join(', ')}`
+    if (todo.description) line += `\n    ${todo.description}`
+    return line
+  }
+
+  const lines: string[] = [
+    'My To-do List',
+    '=============',
+    '',
+  ]
+
+  if (incomplete.length > 0) {
+    lines.push('Tasks:', '', ...incomplete.map(formatTodo), '')
+  }
+
+  if (complete.length > 0) {
+    lines.push('Completed:', '', ...complete.map(formatTodo), '')
+  }
+
+  if (todos.length === 0) lines.push('No tasks.')
+
+  return lines.join('\n')
+}
+
 export function useTodos() {
   const todos = useTodoStore(s => s.todos)
   const load = useTodoStore(s => s.load)
@@ -57,11 +98,18 @@ export function useTodos() {
     return [...incomplete, ...complete]
   }, [todos, sortField, sortDir, filterPriority, filterTag])
 
+  function shareByEmail() {
+    const subject = 'My To-do List'
+    const body = formatTodosForEmail(sortedTodos)
+    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+  }
+
   return {
     todos: sortedTodos,
     create, toggle, remove,
     sortField, sortDir, toggleSort,
     filterPriority, setFilterPriority,
     filterTag, setFilterTag,
+    shareByEmail,
   }
 }

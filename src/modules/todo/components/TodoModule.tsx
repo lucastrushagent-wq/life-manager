@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Share2 } from 'lucide-react'
 import { useTodos } from '../hooks/useTodos'
 import { AddTodoForm } from './AddTodoForm'
 import { TodoTable } from './TodoTable'
@@ -11,6 +11,7 @@ export function TodoModule() {
     sortField, sortDir, toggleSort,
     filterPriority, setFilterPriority,
     filterTag, setFilterTag,
+    shareByEmail,
   } = useTodos()
   const [showForm, setShowForm] = useState(false)
 
@@ -19,13 +20,22 @@ export function TodoModule() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-gray-900">To-do</h1>
         {!showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Add task
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={shareByEmail}
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50"
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4" />
+              Add task
+            </button>
+          </div>
         )}
       </div>
 
