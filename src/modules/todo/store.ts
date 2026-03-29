@@ -6,27 +6,31 @@ import { CreateTodoSchema } from './schema'
 
 interface TodoStore {
   todos: Todo[]
-  load: () => void
-  create: (input: z.infer<typeof CreateTodoSchema>) => void
-  toggle: (id: string) => void
-  remove: (id: string) => void
+  load: () => Promise<void>
+  create: (input: z.infer<typeof CreateTodoSchema>) => Promise<void>
+  toggle: (id: string) => Promise<void>
+  remove: (id: string) => Promise<void>
 }
 
-export const useTodoStore = create<TodoStore>((set) => ({
+export const useTodoStore = create<TodoStore>((set, get) => ({
   todos: [],
-  load: () => set({ todos: todoService.getAll() }),
-  create: (input) => {
-    todoService.create(input)
-    set({ todos: todoService.getAll() })
+  load: async () => {
+    set({ todos: await todoService.getAll() })
   },
-  toggle: (id) => {
-    const todo = todoService.getAll().find(t => t.id === id)
+  create: async (input) => {
+    await todoService.create(input)
+    set({ todos: await todoService.getAll() })
+  },
+  toggle: async (id) => {
+    const todo = get().todos.find(t => t.id === id)
     if (!todo) return
-    todoService.update(id, { completed: !todo.completed })
-    set({ todos: todoService.getAll() })
+    await todoService.update(id, { completed: !todo.completed })
+    set(state => ({
+      todos: state.todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t),
+    }))
   },
-  remove: (id) => {
-    todoService.delete(id)
-    set({ todos: todoService.getAll() })
+  remove: async (id) => {
+    await todoService.delete(id)
+    set(state => ({ todos: state.todos.filter(t => t.id !== id) }))
   },
 }))

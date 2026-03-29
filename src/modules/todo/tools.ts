@@ -22,7 +22,8 @@ export const todoTools: McpTool[] = [
     inputSchema: z.object({ id: z.string() }),
     handler: async (input) => {
       const { id } = input as { id: string }
-      const todo = todoService.getAll().find(t => t.id === id)
+      const todos = await todoService.getAll()
+      const todo = todos.find(t => t.id === id)
       if (!todo) throw new Error(`Todo ${id} not found`)
       return todoService.update(id, { completed: !todo.completed })
     },

@@ -2,43 +2,39 @@ import { z } from 'zod'
 import type { Todo } from './types'
 import { CreateTodoSchema } from './schema'
 
-const KEY = 'life-manager:todos'
+const API = '/api/todos'
 
-function load(): Todo[] {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) ?? '[]')
-  } catch {
-    return []
-  }
-}
-
-function save(todos: Todo[]): void {
-  localStorage.setItem(KEY, JSON.stringify(todos))
+async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, options)
+  if (!res.ok) throw new Error(`API error ${res.status}: ${url}`)
+  return res.status === 204 ? (undefined as T) : res.json()
 }
 
 export const todoService = {
-  getAll(): Todo[] {
-    return load()
+  getAll(): Promise<Todo[]> {
+    return request<Todo[]>(API)
   },
-  create(input: z.infer<typeof CreateTodoSchema>): Todo {
-    const todo: Todo = {
+  create(input: z.infer<typeof CreateTodoSchema>): Promise<Todo> {
+    const todo = {
       ...input,
       id: crypto.randomUUID(),
       completed: false,
       createdAt: new Date().toISOString(),
     }
-    save([...load(), todo])
-    return todo
+    return request<Todo>(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(todo),
+    })
   },
-  update(id: string, patch: Partial<Omit<Todo, 'id' | 'createdAt'>>): Todo {
-    const todos = load()
-    const idx = todos.findIndex(t => t.id === id)
-    if (idx === -1) throw new Error(`Todo ${id} not found`)
-    todos[idx] = { ...todos[idx], ...patch }
-    save(todos)
-    return todos[idx]
+  update(id: string, patch: Partial<Omit<Todo, 'id' | 'createdAt'>>): Promise<Todo> {
+    return request<Todo>(`${API}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
   },
-  delete(id: string): void {
-    save(load().filter(t => t.id !== id))
+  delete(id: string): Promise<void> {
+    return request<void>(`${API}/${id}`, { method: 'DELETE' })
   },
 }
