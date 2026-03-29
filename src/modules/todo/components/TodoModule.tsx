@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Plus, Share2 } from 'lucide-react'
+import { Plus, Share2, Check, Loader2 } from 'lucide-react'
 import { useTodos } from '../hooks/useTodos'
+import { useGmailShare } from '../hooks/useGmailShare'
 import { AddTodoForm } from './AddTodoForm'
 import { TodoTable } from './TodoTable'
 import type { Priority } from '../types'
@@ -11,9 +12,20 @@ export function TodoModule() {
     sortField, sortDir, toggleSort,
     filterPriority, setFilterPriority,
     filterTag, setFilterTag,
-    shareByEmail,
+    getEmailContent,
   } = useTodos()
+  const { shareToGmail, status } = useGmailShare()
   const [showForm, setShowForm] = useState(false)
+
+  function handleShare() {
+    const { subject, body } = getEmailContent()
+    shareToGmail(subject, body)
+  }
+
+  const shareLabel = status === 'sending' ? 'Sending...'
+    : status === 'sent' ? 'Sent!'
+    : status === 'error' ? 'Failed'
+    : 'Share'
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
@@ -22,11 +34,14 @@ export function TodoModule() {
         {!showForm && (
           <div className="flex gap-2">
             <button
-              onClick={shareByEmail}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50"
+              onClick={handleShare}
+              disabled={status === 'sending'}
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Share2 className="w-4 h-4" />
-              Share
+              {status === 'sending' && <Loader2 className="w-4 h-4 animate-spin" />}
+              {status === 'sent' && <Check className="w-4 h-4 text-green-500" />}
+              {(status === 'idle' || status === 'error') && <Share2 className="w-4 h-4" />}
+              {shareLabel}
             </button>
             <button
               onClick={() => setShowForm(true)}

@@ -98,10 +98,8 @@ export function useTodos() {
     return [...incomplete, ...complete]
   }, [todos, sortField, sortDir, filterPriority, filterTag])
 
-  function shareByEmail() {
-    const subject = 'My To-do List'
-    const body = formatTodosForEmail(sortedTodos)
-    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+  function getEmailContent() {
+    return { subject: 'My To-do List', body: formatTodosForEmail(sortedTodos) }
   }
 
   return {
@@ -110,6 +108,6 @@ export function useTodos() {
     sortField, sortDir, toggleSort,
     filterPriority, setFilterPriority,
     filterTag, setFilterTag,
-    shareByEmail,
+    getEmailContent,
   }
 }
