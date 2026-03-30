@@ -6,25 +6,27 @@ import { CreateContactSchema } from './schema'
 
 interface CrmStore {
   contacts: Contact[]
-  load: () => void
-  create: (input: z.infer<typeof CreateContactSchema>) => void
-  update: (id: string, patch: Partial<Omit<Contact, 'id' | 'createdAt'>>) => void
-  remove: (id: string) => void
+  load: () => Promise<void>
+  create: (input: z.infer<typeof CreateContactSchema>) => Promise<void>
+  update: (id: string, patch: Partial<Omit<Contact, 'id' | 'createdAt' | 'lastContactedAt'>>) => Promise<void>
+  remove: (id: string) => Promise<void>
 }
 
 export const useCrmStore = create<CrmStore>((set) => ({
   contacts: [],
-  load: () => set({ contacts: crmService.getAll() }),
-  create: (input) => {
-    crmService.create(input)
-    set({ contacts: crmService.getAll() })
+  load: async () => {
+    set({ contacts: await crmService.getAll() })
   },
-  update: (id, patch) => {
-    crmService.update(id, patch)
-    set({ contacts: crmService.getAll() })
+  create: async (input) => {
+    await crmService.create(input)
+    set({ contacts: await crmService.getAll() })
   },
-  remove: (id) => {
-    crmService.delete(id)
-    set({ contacts: crmService.getAll() })
+  update: async (id, patch) => {
+    await crmService.update(id, patch)
+    set({ contacts: await crmService.getAll() })
+  },
+  remove: async (id) => {
+    await crmService.delete(id)
+    set(state => ({ contacts: state.contacts.filter(c => c.id !== id) }))
   },
 }))

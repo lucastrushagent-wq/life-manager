@@ -3,6 +3,7 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import todosRouter from './routes/todos.js'
+import crmRouter from './routes/crm.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT ?? 3001
@@ -14,6 +15,7 @@ app.use(cors())
 app.use(express.json())
 
 app.use('/api/todos', todosRouter)
+app.use('/api/contacts', crmRouter)
 
 if (isProd) {
   const distDir = path.join(__dirname, '..', 'dist')

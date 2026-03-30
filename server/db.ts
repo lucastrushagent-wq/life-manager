@@ -21,5 +21,33 @@ db.exec(`
     priority    TEXT NOT NULL DEFAULT 'medium',
     tags        TEXT NOT NULL DEFAULT '[]',
     createdAt   TEXT NOT NULL
-  )
+  );
+
+  CREATE TABLE IF NOT EXISTS contacts (
+    id           TEXT PRIMARY KEY,
+    name         TEXT NOT NULL,
+    email        TEXT,
+    phone        TEXT,
+    company      TEXT,
+    relationship TEXT NOT NULL DEFAULT '[]',
+    followUpDays INTEGER,
+    notes        TEXT,
+    createdAt    TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS interactions (
+    id          TEXT PRIMARY KEY,
+    contactId   TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+    date        TEXT NOT NULL,
+    notes       TEXT NOT NULL,
+    createdAt   TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS keyDates (
+    id          TEXT PRIMARY KEY,
+    contactId   TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+    label       TEXT NOT NULL,
+    month       INTEGER NOT NULL,
+    day         INTEGER NOT NULL
+  );
 `)

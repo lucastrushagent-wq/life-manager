@@ -4,7 +4,25 @@ export interface Contact {
   email?: string
   phone?: string
   company?: string
+  relationship: string[]
+  followUpDays?: number
   notes?: string
-  lastContactedAt?: string
   createdAt: string
+  lastContactedAt?: string
+}
+
+export interface Interaction {
+  id: string
+  contactId: string
+  date: string
+  notes: string
+  createdAt: string
+}
+
+export interface KeyDate {
+  id: string
+  contactId: string
+  label: string
+  month: number
+  day: number
 }
