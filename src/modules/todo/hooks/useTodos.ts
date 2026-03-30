@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTodoStore } from '../store'
+import { todoService } from '../service'
 import type { Priority, SortDir, SortField, Todo } from '../types'
 
 const PRIORITY_ORDER: Record<Priority, number> = { high: 0, medium: 1, low: 2 }
@@ -75,7 +76,9 @@ export function useTodos() {
   const [filterPriority, setFilterPriority] = useState<Priority | 'all'>('all')
   const [filterTag, setFilterTag] = useState('')
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    todoService.generateRecurring().then(() => load()).catch(() => load())
+  }, [load])
 
   function toggleSort(field: SortField) {
     if (sortField === field) {

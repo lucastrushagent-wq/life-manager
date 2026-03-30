@@ -1,8 +1,9 @@
 import { z } from 'zod'
-import type { Todo } from './types'
-import { CreateTodoSchema } from './schema'
+import type { Todo, RecurringTodo } from './types'
+import { CreateTodoSchema, CreateRecurringTodoSchema } from './schema'
 
 const API = '/api/todos'
+const RECURRING_API = '/api/recurring-todos'
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)
@@ -36,5 +37,28 @@ export const todoService = {
   },
   delete(id: string): Promise<void> {
     return request<void>(`${API}/${id}`, { method: 'DELETE' })
+  },
+
+  // Recurring todos
+  getAllRecurring(): Promise<RecurringTodo[]> {
+    return request<RecurringTodo[]>(RECURRING_API)
+  },
+  createRecurring(input: z.infer<typeof CreateRecurringTodoSchema>): Promise<RecurringTodo> {
+    const recurring = {
+      ...input,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    }
+    return request<RecurringTodo>(RECURRING_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(recurring),
+    })
+  },
+  deleteRecurring(id: string): Promise<void> {
+    return request<void>(`${RECURRING_API}/${id}`, { method: 'DELETE' })
+  },
+  generateRecurring(): Promise<Todo[]> {
+    return request<Todo[]>(`${RECURRING_API}/generate`, { method: 'POST' })
   },
 }

@@ -2,9 +2,14 @@ import { useState } from 'react'
 import { Plus, Share2, Check, Loader2 } from 'lucide-react'
 import { useTodos } from '../hooks/useTodos'
 import { useGmailShare } from '../hooks/useGmailShare'
+import { useRecurringTodos } from '../hooks/useRecurringTodos'
 import { AddTodoForm } from './AddTodoForm'
 import { TodoTable } from './TodoTable'
+import { AddRecurringTodoForm } from './AddRecurringTodoForm'
+import { RecurringTodoTable } from './RecurringTodoTable'
 import type { Priority } from '../types'
+
+type TabView = 'tasks' | 'recurring'
 
 export function TodoModule() {
   const {
@@ -15,6 +20,9 @@ export function TodoModule() {
     getEmailContent,
   } = useTodos()
   const { shareToGmail, status } = useGmailShare()
+  const { recurringTodos, create: createRecurring, remove: removeRecurring } = useRecurringTodos()
+
+  const [view, setView] = useState<TabView>('tasks')
   const [showForm, setShowForm] = useState(false)
 
   function handleShare() {
@@ -30,65 +38,100 @@ export function TodoModule() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">To-do</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-semibold text-gray-900">To-do</h1>
+          <div className="flex rounded-md border border-gray-200 overflow-hidden text-sm">
+            <button
+              onClick={() => { setView('tasks'); setShowForm(false) }}
+              className={`px-3 py-1.5 ${view === 'tasks' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              Tasks
+            </button>
+            <button
+              onClick={() => { setView('recurring'); setShowForm(false) }}
+              className={`px-3 py-1.5 border-l border-gray-200 ${view === 'recurring' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              Recurring
+            </button>
+          </div>
+        </div>
         {!showForm && (
           <div className="flex gap-2">
-            <button
-              onClick={handleShare}
-              disabled={status === 'sending'}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {status === 'sending' && <Loader2 className="w-4 h-4 animate-spin" />}
-              {status === 'sent' && <Check className="w-4 h-4 text-green-500" />}
-              {(status === 'idle' || status === 'error') && <Share2 className="w-4 h-4" />}
-              {shareLabel}
-            </button>
+            {view === 'tasks' && (
+              <button
+                onClick={handleShare}
+                disabled={status === 'sending'}
+                className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {status === 'sending' && <Loader2 className="w-4 h-4 animate-spin" />}
+                {status === 'sent' && <Check className="w-4 h-4 text-green-500" />}
+                {(status === 'idle' || status === 'error') && <Share2 className="w-4 h-4" />}
+                {shareLabel}
+              </button>
+            )}
             <button
               onClick={() => setShowForm(true)}
               className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
               <Plus className="w-4 h-4" />
-              Add task
+              {view === 'tasks' ? 'Add task' : 'Add recurring'}
             </button>
           </div>
         )}
       </div>
 
-      {showForm && (
-        <AddTodoForm
-          onAdd={input => { create(input); setShowForm(false) }}
-          onCancel={() => setShowForm(false)}
-        />
+      {view === 'tasks' && (
+        <>
+          {showForm && (
+            <AddTodoForm
+              onAdd={input => { create(input); setShowForm(false) }}
+              onCancel={() => setShowForm(false)}
+            />
+          )}
+          <div className="flex gap-3 mb-4">
+            <select
+              value={filterPriority}
+              onChange={e => setFilterPriority(e.target.value as Priority | 'all')}
+              className="text-sm border border-gray-200 rounded px-2 py-1.5 text-gray-600 outline-none focus:border-blue-400 bg-white"
+            >
+              <option value="all">All priorities</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Filter by tag..."
+              value={filterTag}
+              onChange={e => setFilterTag(e.target.value)}
+              className="text-sm border border-gray-200 rounded px-2 py-1.5 text-gray-600 outline-none focus:border-blue-400 w-40"
+            />
+          </div>
+          <TodoTable
+            todos={todos}
+            sortField={sortField}
+            sortDir={sortDir}
+            onToggleSort={toggleSort}
+            onToggle={toggle}
+            onDelete={remove}
+          />
+        </>
       )}
 
-      <div className="flex gap-3 mb-4">
-        <select
-          value={filterPriority}
-          onChange={e => setFilterPriority(e.target.value as Priority | 'all')}
-          className="text-sm border border-gray-200 rounded px-2 py-1.5 text-gray-600 outline-none focus:border-blue-400 bg-white"
-        >
-          <option value="all">All priorities</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Filter by tag..."
-          value={filterTag}
-          onChange={e => setFilterTag(e.target.value)}
-          className="text-sm border border-gray-200 rounded px-2 py-1.5 text-gray-600 outline-none focus:border-blue-400 w-40"
-        />
-      </div>
-
-      <TodoTable
-        todos={todos}
-        sortField={sortField}
-        sortDir={sortDir}
-        onToggleSort={toggleSort}
-        onToggle={toggle}
-        onDelete={remove}
-      />
+      {view === 'recurring' && (
+        <>
+          {showForm && (
+            <AddRecurringTodoForm
+              onAdd={input => { createRecurring(input); setShowForm(false) }}
+              onCancel={() => setShowForm(false)}
+            />
+          )}
+          <RecurringTodoTable
+            recurringTodos={recurringTodos}
+            onDelete={removeRecurring}
+          />
+        </>
+      )}
     </div>
   )
 }

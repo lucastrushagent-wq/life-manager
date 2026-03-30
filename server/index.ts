@@ -4,6 +4,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import todosRouter from './routes/todos.js'
 import crmRouter from './routes/crm.js'
+import recurringTodosRouter from './routes/recurringTodos.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT ?? 3001
@@ -16,6 +17,7 @@ app.use(express.json())
 
 app.use('/api/todos', todosRouter)
 app.use('/api/contacts', crmRouter)
+app.use('/api/recurring-todos', recurringTodosRouter)
 
 if (isProd) {
   const distDir = path.join(__dirname, '..', 'dist')
