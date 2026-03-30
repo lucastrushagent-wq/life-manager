@@ -4,6 +4,7 @@ export interface Contact {
   email?: string
   phone?: string
   company?: string
+  role?: string
   relationship: string[]
   followUpDays?: number
   notes?: string

@@ -21,6 +21,7 @@ export function AddContactForm({ onAdd, onCancel }: Props) {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [company, setCompany] = useState('')
+  const [role, setRole] = useState('')
   const [followUpDays, setFollowUpDays] = useState('')
   const [notes, setNotes] = useState('')
   const [tags, setTags] = useState<string[]>([])
@@ -43,6 +44,7 @@ export function AddContactForm({ onAdd, onCancel }: Props) {
       email: email.trim() || undefined,
       phone: phone.trim() || undefined,
       company: company.trim() || undefined,
+      role: role.trim() || undefined,
       relationship: tags,
       followUpDays: followUpDays ? parseInt(followUpDays) : undefined,
       notes: notes.trim() || undefined,
@@ -59,6 +61,8 @@ export function AddContactForm({ onAdd, onCancel }: Props) {
         <input type="tel" placeholder="Phone" value={phone} onChange={e => setPhone(e.target.value)}
           className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400" />
         <input type="text" placeholder="Company" value={company} onChange={e => setCompany(e.target.value)}
+          className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400" />
+        <input type="text" placeholder="Current Role" value={role} onChange={e => setRole(e.target.value)}
           className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400" />
         <select value={followUpDays} onChange={e => setFollowUpDays(e.target.value)}
           className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 bg-white text-gray-600">

@@ -11,6 +11,7 @@ function toContact(row: Row) {
     email: row.email ?? undefined,
     phone: row.phone ?? undefined,
     company: row.company ?? undefined,
+    role: row.role ?? undefined,
     relationship: JSON.parse(row.relationship as string),
     followUpDays: row.followUpDays ?? undefined,
     notes: row.notes ?? undefined,
@@ -51,11 +52,11 @@ router.get('/', (_req, res) => {
 })
 
 router.post('/', (req, res) => {
-  const { id, name, email, phone, company, relationship, followUpDays, notes, createdAt } = req.body
+  const { id, name, email, phone, company, role, relationship, followUpDays, notes, createdAt } = req.body
   db.prepare(`
-    INSERT INTO contacts (id, name, email, phone, company, relationship, followUpDays, notes, createdAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(id, name, email ?? null, phone ?? null, company ?? null, JSON.stringify(relationship ?? []), followUpDays ?? null, notes ?? null, createdAt)
+    INSERT INTO contacts (id, name, email, phone, company, role, relationship, followUpDays, notes, createdAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, name, email ?? null, phone ?? null, company ?? null, role ?? null, JSON.stringify(relationship ?? []), followUpDays ?? null, notes ?? null, createdAt)
   const row = db.prepare(`
     SELECT c.*, (SELECT MAX(i.date) FROM interactions i WHERE i.contactId = c.id) as lastContactedAt
     FROM contacts c WHERE c.id = ?
@@ -70,13 +71,14 @@ router.patch('/:id', (req, res) => {
 
   const p = req.body
   db.prepare(`
-    UPDATE contacts SET name = ?, email = ?, phone = ?, company = ?, relationship = ?, followUpDays = ?, notes = ?
+    UPDATE contacts SET name = ?, email = ?, phone = ?, company = ?, role = ?, relationship = ?, followUpDays = ?, notes = ?
     WHERE id = ?
   `).run(
     p.name ?? row.name,
     p.email ?? row.email ?? null,
     p.phone ?? row.phone ?? null,
     p.company ?? row.company ?? null,
+    p.role !== undefined ? p.role : (row.role ?? null),
     JSON.stringify(p.relationship ?? JSON.parse(row.relationship as string)),
     p.followUpDays !== undefined ? p.followUpDays : (row.followUpDays ?? null),
     p.notes !== undefined ? p.notes : (row.notes ?? null),

@@ -69,7 +69,10 @@ export function ContactTable({ contacts, sortField, sortDir, onToggleSort, onSel
             return (
               <tr key={contact.id} className="bg-white hover:bg-gray-50 cursor-pointer transition-colors"
                 onClick={() => onSelect(contact.id)}>
-                <td className="px-4 py-3 font-medium text-gray-800">{contact.name}</td>
+                <td className="px-4 py-3">
+                  <div className="font-medium text-gray-800">{contact.name}</div>
+                  {contact.role && <div className="text-xs text-gray-400">{contact.role}</div>}
+                </td>
                 <td className="px-4 py-3 text-gray-500">{contact.company ?? <span className="text-gray-300">—</span>}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">

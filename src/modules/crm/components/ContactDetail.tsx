@@ -39,8 +39,9 @@ export function ContactDetail({ contactId, onBack }: Props) {
 
       {/* Header */}
       <div className="bg-white border border-gray-200 rounded-lg p-5 mb-5">
-        <h2 className="text-xl font-semibold text-gray-900 mb-1">{contact.name}</h2>
-        {contact.company && <p className="text-sm text-gray-500 mb-3">{contact.company}</p>}
+        <h2 className="text-xl font-semibold text-gray-900 mb-0.5">{contact.name}</h2>
+        {contact.role && <p className="text-sm text-gray-500">{contact.role}</p>}
+        {contact.company && <p className="text-sm text-gray-400 mb-3">{contact.company}</p>}
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
           {contact.email && <div><span className="text-gray-400">Email </span><span className="text-gray-700">{contact.email}</span></div>}

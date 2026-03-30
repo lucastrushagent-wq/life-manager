@@ -7,6 +7,7 @@ export const ContactSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().optional(),
   company: z.string().optional(),
+  role: z.string().optional(),
   relationship: z.array(z.string()),
   followUpDays: z.number().int().positive().optional(),
   notes: z.string().optional(),
