@@ -2,6 +2,10 @@ import { ComponentType } from 'react'
 import { todoTab } from '../modules/todo'
 import { crmTab } from '../modules/crm'
 import { financeTab } from '../modules/finance'
+import { tweedTab } from '../modules/tweed'
+import { lucieTab } from '../modules/lucie'
+import { shoppingTab } from '../modules/shopping'
+import { healthTab } from '../modules/health'
 
 export interface TabConfig {
   id: string
@@ -10,4 +14,4 @@ export interface TabConfig {
   component: ComponentType
 }
 
-export const tabs: TabConfig[] = [todoTab, crmTab, financeTab]
+export const tabs: TabConfig[] = [todoTab, crmTab, financeTab, tweedTab, lucieTab, shoppingTab, healthTab]
