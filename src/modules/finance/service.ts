@@ -1,43 +1,38 @@
 import { z } from 'zod'
-import type { Transaction } from './types'
-import { CreateTransactionSchema } from './schema'
+import type { FinanceAccount } from './types'
+import { CreateFinanceAccountSchema } from './schema'
 
-const KEY = 'life-manager:transactions'
-
-function load(): Transaction[] {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) ?? '[]')
-  } catch {
-    return []
-  }
-}
-
-function save(transactions: Transaction[]): void {
-  localStorage.setItem(KEY, JSON.stringify(transactions))
-}
+const BASE = 'http://localhost:3001/api/finance/accounts'
 
 export const financeService = {
-  getAll(): Transaction[] {
-    return load()
+  async getAll(): Promise<FinanceAccount[]> {
+    const res = await fetch(BASE)
+    if (!res.ok) throw new Error('Failed to fetch accounts')
+    return res.json()
   },
-  create(input: z.infer<typeof CreateTransactionSchema>): Transaction {
-    const transaction: Transaction = {
-      ...input,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    }
-    save([...load(), transaction])
-    return transaction
+
+  async create(input: z.infer<typeof CreateFinanceAccountSchema>): Promise<FinanceAccount> {
+    const res = await fetch(BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    if (!res.ok) throw new Error('Failed to create account')
+    return res.json()
   },
-  update(id: string, patch: Partial<Omit<Transaction, 'id' | 'createdAt'>>): Transaction {
-    const transactions = load()
-    const idx = transactions.findIndex(t => t.id === id)
-    if (idx === -1) throw new Error(`Transaction ${id} not found`)
-    transactions[idx] = { ...transactions[idx], ...patch }
-    save(transactions)
-    return transactions[idx]
+
+  async update(id: string, patch: Partial<Omit<FinanceAccount, 'id' | 'createdAt'>>): Promise<FinanceAccount> {
+    const res = await fetch(`${BASE}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
+    if (!res.ok) throw new Error('Failed to update account')
+    return res.json()
   },
-  delete(id: string): void {
-    save(load().filter(t => t.id !== id))
+
+  async delete(id: string): Promise<void> {
+    const res = await fetch(`${BASE}/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete account')
   },
 }

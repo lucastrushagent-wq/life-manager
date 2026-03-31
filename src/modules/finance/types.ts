@@ -1,11 +1,13 @@
-export type TransactionType = 'income' | 'expense'
+export type AccountCategory = '401k' | 'stocks' | 'property' | 'misc_asset' | 'credit_card' | 'personal_loan'
+export type AccountType = 'asset' | 'liability'
 
-export interface Transaction {
+export interface FinanceAccount {
   id: string
-  amount: number
-  description: string
-  category: string
-  type: TransactionType
-  date: string
+  name: string
+  category: AccountCategory
+  type: AccountType
+  value: number
+  lastUpdated: string
+  notes?: string
   createdAt: string
 }

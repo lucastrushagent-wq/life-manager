@@ -65,6 +65,17 @@ db.exec(`
     month       INTEGER NOT NULL,
     day         INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS financeAccounts (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    category    TEXT NOT NULL,
+    type        TEXT NOT NULL,
+    value       REAL NOT NULL DEFAULT 0,
+    lastUpdated TEXT NOT NULL,
+    notes       TEXT,
+    createdAt   TEXT NOT NULL
+  );
 `)
 
 // Migrations — safe to run on existing databases (must run after CREATE TABLE)
