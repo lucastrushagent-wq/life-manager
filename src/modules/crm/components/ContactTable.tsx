@@ -105,7 +105,11 @@ export function ContactTable({ contacts, sortField, sortDir, onToggleSort, onSel
                 <td className="px-4 py-3 whitespace-nowrap">
                   {nextFollowUp ? (
                     <span className={isOverdue ? 'text-red-500 font-medium' : 'text-gray-500'}>
-                      {isOverdue ? '⚠ ' : ''}{nextFollowUp.toLocaleDateString()}
+                      {isOverdue
+                        ? contact.lastContactedAt
+                          ? `⚠ ${nextFollowUp.toLocaleDateString()}`
+                          : '⚠ Never contacted'
+                        : nextFollowUp.toLocaleDateString()}
                     </span>
                   ) : <span className="text-gray-300">—</span>}
                 </td>

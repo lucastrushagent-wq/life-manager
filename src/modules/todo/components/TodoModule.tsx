@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { Plus, Share2, Check, Loader2 } from 'lucide-react'
+import { Plus, Share2, Check, Loader2, Users } from 'lucide-react'
 import { useTodos } from '../hooks/useTodos'
 import { useGmailShare } from '../hooks/useGmailShare'
 import { useRecurringTodos } from '../hooks/useRecurringTodos'
+import { useCrmFollowUps } from '../hooks/useCrmFollowUps'
+import { useNavigationStore } from '../../../core/navigationStore'
 import { AddTodoForm } from './AddTodoForm'
 import { TodoTable } from './TodoTable'
 import { AddRecurringTodoForm } from './AddRecurringTodoForm'
@@ -31,6 +33,8 @@ export function TodoModule() {
   } = useTodos()
   const { shareToGmail, status } = useGmailShare()
   const { recurringTodos, create: createRecurring, remove: removeRecurring } = useRecurringTodos()
+  const followUps = useCrmFollowUps()
+  const setActiveTab = useNavigationStore(s => s.setActiveTabId)
 
   const [view, setView] = useState<TabView>('tasks')
   const [showForm, setShowForm] = useState(false)
@@ -163,6 +167,37 @@ export function TodoModule() {
             onToggle={toggle}
             onDelete={remove}
           />
+
+          {followUps.length > 0 && (
+            <div className="mt-8">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-4 h-4 text-orange-500" />
+                <h2 className="text-sm font-semibold text-gray-700">CRM Follow-ups overdue</h2>
+                <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">{followUps.length}</span>
+              </div>
+              <div className="rounded-lg border border-orange-100 overflow-hidden">
+                {followUps.map((f, i) => (
+                  <div key={f.id} className={`flex items-center justify-between px-4 py-3 bg-white text-sm ${i < followUps.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                    <div>
+                      <span className="font-medium text-gray-800">{f.name}</span>
+                      {f.company && <span className="text-gray-400 ml-2">{f.company}</span>}
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-orange-500 font-medium">
+                        {f.daysOverdue === null ? 'Never contacted' : `${f.daysOverdue}d overdue`}
+                      </span>
+                      <button
+                        onClick={() => setActiveTab('crm')}
+                        className="text-xs text-blue-600 hover:text-blue-800"
+                      >
+                        Go to CRM →
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
 

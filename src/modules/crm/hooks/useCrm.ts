@@ -6,7 +6,8 @@ export type CrmSortField = 'name' | 'company' | 'lastContactedAt' | 'nextFollowU
 export type CrmSortDir = 'asc' | 'desc'
 
 function getNextFollowUp(contact: Contact): Date | null {
-  if (!contact.followUpDays || !contact.lastContactedAt) return null
+  if (!contact.followUpDays) return null
+  if (!contact.lastContactedAt) return new Date(0) // never contacted = immediately overdue
   const next = new Date(contact.lastContactedAt)
   next.setDate(next.getDate() + contact.followUpDays)
   return next

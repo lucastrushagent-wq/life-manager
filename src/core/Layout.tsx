@@ -1,9 +1,10 @@
-import { useState } from 'react'
 import { tabs } from './tabs'
+import { useNavigationStore } from './navigationStore'
 
 export function Layout() {
-  const [activeId, setActiveId] = useState(tabs[0].id)
-  const activeTab = tabs.find(t => t.id === activeId)!
+  const activeId = useNavigationStore(s => s.activeTabId)
+  const setActiveId = useNavigationStore(s => s.setActiveTabId)
+  const activeTab = tabs.find(t => t.id === activeId) ?? tabs[0]
   const ActiveComponent = activeTab.component
 
   return (
