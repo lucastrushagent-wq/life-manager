@@ -13,6 +13,8 @@ const FOLLOW_UP_OPTIONS = [
   { label: 'Bi-weekly', value: '14' },
   { label: 'Monthly', value: '30' },
   { label: 'Quarterly', value: '90' },
+  { label: 'Half-yearly', value: '182' },
+  { label: 'Yearly', value: '365' },
 ]
 
 interface Props {
