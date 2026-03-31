@@ -23,7 +23,18 @@ function sortTodos(todos: Todo[], field: SortField, dir: SortDir): Todo[] {
   })
 }
 
-function formatTodosForEmail(todos: Todo[]): string {
+interface FollowUp {
+  name: string
+  company?: string
+  daysOverdue: number | null
+}
+
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function formatTodosForEmail(todos: Todo[], followUps: FollowUp[] = []): string {
   const incomplete = todos.filter(t => !t.completed)
   const complete = todos.filter(t => t.completed)
 
@@ -31,13 +42,13 @@ function formatTodosForEmail(todos: Todo[]): string {
     const check = todo.completed ? '[x]' : '[ ]'
     let line = `${check} ${todo.title}`
     if (todo.dueDate) {
-      const due = new Date(todo.dueDate)
+      const due = parseLocalDate(todo.dueDate)
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       due.setHours(0, 0, 0, 0)
       const days = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       const daysLabel = days < 0 ? `${Math.abs(days)}d overdue` : days === 0 ? 'due today' : `${days}d left`
-      line += ` — Due: ${new Date(todo.dueDate).toLocaleDateString()} (${daysLabel})`
+      line += ` — Due: ${due.toLocaleDateString()} (${daysLabel})`
     }
     line += ` — Priority: ${todo.priority.charAt(0).toUpperCase() + todo.priority.slice(1)}`
     if (todo.tags.length > 0) line += ` — Tags: ${todo.tags.join(', ')}`
@@ -60,6 +71,16 @@ function formatTodosForEmail(todos: Todo[]): string {
   }
 
   if (todos.length === 0) lines.push('No tasks.')
+
+  if (followUps.length > 0) {
+    lines.push('', 'CRM Follow-ups Overdue', '----------------------', '')
+    for (const f of followUps) {
+      const status = f.daysOverdue === null ? 'Never contacted' : `${f.daysOverdue}d overdue`
+      const company = f.company ? ` (${f.company})` : ''
+      lines.push(`• ${f.name}${company} — ${status}`)
+    }
+    lines.push('')
+  }
 
   return lines.join('\n')
 }
@@ -102,8 +123,8 @@ export function useTodos() {
     return [...incomplete, ...complete]
   }, [todos, sortField, sortDir, filterPriority, filterTag])
 
-  function getEmailContent() {
-    return { subject: 'My To-do List', body: formatTodosForEmail(sortedTodos) }
+  function getEmailContent(followUps: FollowUp[] = []) {
+    return { subject: 'My To-do List', body: formatTodosForEmail(sortedTodos, followUps) }
   }
 
   return {

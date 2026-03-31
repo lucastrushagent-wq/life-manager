@@ -44,7 +44,7 @@ export function TodoModule() {
   const futureTodos = todos.filter(t => isFuture(t))
 
   function handleShare() {
-    const { subject, body } = getEmailContent()
+    const { subject, body } = getEmailContent(followUps)
     shareToGmail(subject, body)
   }
 
