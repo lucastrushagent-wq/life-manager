@@ -12,8 +12,11 @@ interface ImportResult {
   skipped: number
 }
 
+type CrmView = 'active' | 'archived'
+
 export function CrmModule() {
-  const { contacts, create, remove, sortField, sortDir, toggleSort, filterTag, setFilterTag, search, setSearch, getNextFollowUp, load } = useCrm()
+  const { contacts, create, archive, remove, sortField, sortDir, toggleSort, filterTag, setFilterTag, search, setSearch, getNextFollowUp, load } = useCrm()
+  const [view, setView] = useState<CrmView>('active')
   const [showForm, setShowForm] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
@@ -23,6 +26,9 @@ export function CrmModule() {
   if (selectedId) {
     return <ContactDetail contactId={selectedId} onBack={() => setSelectedId(null)} />
   }
+
+  const activeContacts = contacts.filter(c => !c.archived)
+  const archivedContacts = contacts.filter(c => c.archived)
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -45,16 +51,36 @@ export function CrmModule() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">CRM</h1>
-        {!showForm && (
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-semibold text-gray-900">CRM</h1>
+          <div className="flex rounded-md border border-gray-200 overflow-hidden text-sm">
+            <button
+              onClick={() => { setView('active'); setShowForm(false) }}
+              className={`px-3 py-1.5 flex items-center gap-1.5 ${view === 'active' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              Active
+              {activeContacts.length > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${view === 'active' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                  {activeContacts.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => { setView('archived'); setShowForm(false) }}
+              className={`px-3 py-1.5 border-l border-gray-200 flex items-center gap-1.5 ${view === 'archived' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              Archived
+              {archivedContacts.length > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${view === 'archived' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                  {archivedContacts.length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+        {!showForm && view === 'active' && (
           <div className="flex gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={handleFileChange}
-            />
+            <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={importing}
@@ -100,13 +126,15 @@ export function CrmModule() {
       </div>
 
       <ContactTable
-        contacts={contacts}
+        contacts={view === 'active' ? activeContacts : archivedContacts}
         sortField={sortField}
         sortDir={sortDir}
         onToggleSort={toggleSort}
         onSelect={setSelectedId}
+        onArchive={archive}
         onDelete={remove}
         getNextFollowUp={getNextFollowUp}
+        showArchived={view === 'archived'}
       />
     </div>
   )

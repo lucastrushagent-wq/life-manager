@@ -13,6 +13,7 @@ function toContact(row: Row) {
     company: row.company ?? undefined,
     role: row.role ?? undefined,
     linkedinUrl: row.linkedinUrl ?? undefined,
+    archived: row.archived === 1,
     relationship: JSON.parse(row.relationship as string),
     followUpDays: row.followUpDays ?? undefined,
     notes: row.notes ?? undefined,
@@ -82,8 +83,8 @@ router.get('/', (_req, res) => {
 router.post('/', (req, res) => {
   const { id, name, email, phone, company, role, linkedinUrl, relationship, followUpDays, notes, createdAt } = req.body
   db.prepare(`
-    INSERT INTO contacts (id, name, email, phone, company, role, linkedinUrl, relationship, followUpDays, notes, createdAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO contacts (id, name, email, phone, company, role, linkedinUrl, archived, relationship, followUpDays, notes, createdAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
   `).run(id, name, email ?? null, phone ?? null, company ?? null, role ?? null, linkedinUrl ?? null, JSON.stringify(relationship ?? []), followUpDays ?? null, notes ?? null, createdAt)
   const row = db.prepare(`
     SELECT c.*, (SELECT MAX(i.date) FROM interactions i WHERE i.contactId = c.id) as lastContactedAt
@@ -99,7 +100,7 @@ router.patch('/:id', (req, res) => {
 
   const p = req.body
   db.prepare(`
-    UPDATE contacts SET name = ?, email = ?, phone = ?, company = ?, role = ?, linkedinUrl = ?, relationship = ?, followUpDays = ?, notes = ?
+    UPDATE contacts SET name = ?, email = ?, phone = ?, company = ?, role = ?, linkedinUrl = ?, archived = ?, relationship = ?, followUpDays = ?, notes = ?
     WHERE id = ?
   `).run(
     p.name ?? row.name,
@@ -108,6 +109,7 @@ router.patch('/:id', (req, res) => {
     p.company !== undefined ? (p.company || null) : (row.company ?? null),
     p.role !== undefined ? (p.role || null) : (row.role ?? null),
     p.linkedinUrl !== undefined ? (p.linkedinUrl || null) : (row.linkedinUrl ?? null),
+    p.archived !== undefined ? (p.archived ? 1 : 0) : (row.archived ?? 0),
     JSON.stringify(p.relationship ?? JSON.parse(row.relationship as string)),
     p.followUpDays !== undefined ? p.followUpDays : (row.followUpDays ?? null),
     p.notes !== undefined ? p.notes : (row.notes ?? null),
@@ -168,8 +170,8 @@ router.post('/import-linkedin', (req, res) => {
       const now = new Date().toISOString()
       const notes = connectedOn ? `Connected on LinkedIn: ${connectedOn}` : null
       db.prepare(`
-        INSERT INTO contacts (id, name, email, phone, company, role, linkedinUrl, relationship, followUpDays, notes, createdAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO contacts (id, name, email, phone, company, role, linkedinUrl, archived, relationship, followUpDays, notes, createdAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
       `).run(
         id, name,
         email || null,

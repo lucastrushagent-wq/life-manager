@@ -6,6 +6,7 @@ export interface Contact {
   company?: string
   role?: string
   linkedinUrl?: string
+  archived: boolean
   relationship: string[]
   followUpDays?: number
   notes?: string

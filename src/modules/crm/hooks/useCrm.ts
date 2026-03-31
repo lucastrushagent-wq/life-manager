@@ -37,6 +37,7 @@ export function useCrm() {
   const load = useCrmStore(s => s.load)
   const create = useCrmStore(s => s.create)
   const update = useCrmStore(s => s.update)
+  const archive = useCrmStore(s => s.archive)
   const remove = useCrmStore(s => s.remove)
 
   const [sortField, setSortField] = useState<CrmSortField>('name')
@@ -73,7 +74,7 @@ export function useCrm() {
 
   return {
     contacts: sortedContacts,
-    load, create, update, remove,
+    load, create, update, archive, remove,
     sortField, sortDir, toggleSort,
     filterTag, setFilterTag,
     search, setSearch,

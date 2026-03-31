@@ -9,6 +9,7 @@ interface CrmStore {
   load: () => Promise<void>
   create: (input: z.infer<typeof CreateContactSchema>) => Promise<void>
   update: (id: string, patch: Partial<Omit<Contact, 'id' | 'createdAt' | 'lastContactedAt'>>) => Promise<void>
+  archive: (id: string, archived: boolean) => Promise<void>
   remove: (id: string) => Promise<void>
 }
 
@@ -24,6 +25,10 @@ export const useCrmStore = create<CrmStore>((set) => ({
   update: async (id, patch) => {
     await crmService.update(id, patch)
     set({ contacts: await crmService.getAll() })
+  },
+  archive: async (id, archived) => {
+    await crmService.update(id, { archived })
+    set(state => ({ contacts: state.contacts.map(c => c.id === id ? { ...c, archived } : c) }))
   },
   remove: async (id) => {
     await crmService.delete(id)

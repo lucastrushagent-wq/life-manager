@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import type { Contact } from '../types'
 import type { CrmSortDir, CrmSortField } from '../hooks/useCrm'
@@ -8,9 +9,13 @@ interface Props {
   sortDir: CrmSortDir
   onToggleSort: (field: CrmSortField) => void
   onSelect: (id: string) => void
+  onArchive: (id: string, archived: boolean) => void
   onDelete: (id: string) => void
   getNextFollowUp: (contact: Contact) => Date | null
+  showArchived?: boolean
 }
+
+type ConfirmAction = 'archive' | 'unarchive' | 'delete'
 
 function SortIcon({ field, sortField, sortDir }: { field: CrmSortField; sortField: CrmSortField; sortDir: CrmSortDir }) {
   if (sortField !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />
@@ -34,12 +39,21 @@ function daysAgo(dateStr: string): string {
   return `${days}d ago`
 }
 
-export function ContactTable({ contacts, sortField, sortDir, onToggleSort, onSelect, onDelete, getNextFollowUp }: Props) {
+export function ContactTable({ contacts, sortField, sortDir, onToggleSort, onSelect, onArchive, onDelete, getNextFollowUp, showArchived }: Props) {
+  const [confirm, setConfirm] = useState<{ id: string; action: ConfirmAction } | null>(null)
+
   if (contacts.length === 0) {
-    return <p className="text-center text-gray-400 text-sm py-16">No contacts yet. Add one above.</p>
+    return <p className="text-center text-gray-400 text-sm py-16">{showArchived ? 'No archived contacts.' : 'No contacts yet. Add one above.'}</p>
   }
 
   const today = new Date()
+
+  function handleConfirm(id: string, action: ConfirmAction) {
+    if (action === 'delete') onDelete(id)
+    else if (action === 'archive') onArchive(id, true)
+    else if (action === 'unarchive') onArchive(id, false)
+    setConfirm(null)
+  }
 
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200">
@@ -59,16 +73,18 @@ export function ContactTable({ contacts, sortField, sortDir, onToggleSort, onSel
             <th className="px-4 py-3 text-left">
               <SortHeader label="Next Follow-up" field="nextFollowUp" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
             </th>
-            <th className="px-4 py-3 w-24" />
+            <th className="px-4 py-3 text-right font-medium text-gray-600 w-48">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
           {contacts.map(contact => {
             const nextFollowUp = getNextFollowUp(contact)
             const isOverdue = nextFollowUp ? nextFollowUp < today : false
+            const isConfirming = confirm?.id === contact.id
+
             return (
               <tr key={contact.id} className="bg-white hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => onSelect(contact.id)}>
+                onClick={() => !isConfirming && onSelect(contact.id)}>
                 <td className="px-4 py-3">
                   <div className="font-medium text-gray-800">{contact.name}</div>
                   {contact.role && <div className="text-xs text-gray-400">{contact.role}</div>}
@@ -93,11 +109,35 @@ export function ContactTable({ contacts, sortField, sortDir, onToggleSort, onSel
                     </span>
                   ) : <span className="text-gray-300">—</span>}
                 </td>
-                <td className="px-4 py-3 text-right" onClick={e => e.stopPropagation()}>
-                  <button onClick={() => onSelect(contact.id)}
-                    className="text-xs text-blue-600 hover:text-blue-800 mr-3">View</button>
-                  <button onClick={() => onDelete(contact.id)}
-                    className="text-xs text-gray-300 hover:text-red-400">Delete</button>
+                <td className="px-4 py-3 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                  {isConfirming ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Are you sure?</span>
+                      <button
+                        onClick={() => handleConfirm(contact.id, confirm.action)}
+                        className="text-xs px-2 py-0.5 rounded bg-red-500 text-white hover:bg-red-600"
+                      >Yes</button>
+                      <button
+                        onClick={() => setConfirm(null)}
+                        className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      >No</button>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-3">
+                      <button
+                        onClick={() => onSelect(contact.id)}
+                        className="text-xs text-blue-600 hover:text-blue-800"
+                      >View</button>
+                      <button
+                        onClick={() => setConfirm({ id: contact.id, action: showArchived ? 'unarchive' : 'archive' })}
+                        className="text-xs text-amber-600 hover:text-amber-800"
+                      >{showArchived ? 'Unarchive' : 'Archive'}</button>
+                      <button
+                        onClick={() => setConfirm({ id: contact.id, action: 'delete' })}
+                        className="text-xs text-red-400 hover:text-red-600"
+                      >Delete</button>
+                    </span>
+                  )}
                 </td>
               </tr>
             )

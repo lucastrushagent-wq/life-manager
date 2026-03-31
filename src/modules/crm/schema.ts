@@ -8,6 +8,8 @@ export const ContactSchema = z.object({
   phone: z.string().optional(),
   company: z.string().optional(),
   role: z.string().optional(),
+  linkedinUrl: z.string().optional(),
+  archived: z.boolean(),
   relationship: z.array(z.string()),
   followUpDays: z.number().int().positive().optional(),
   notes: z.string().optional(),
@@ -15,7 +17,7 @@ export const ContactSchema = z.object({
   lastContactedAt: z.string().optional(),
 }) satisfies z.ZodType<Contact>
 
-export const CreateContactSchema = ContactSchema.omit({ id: true, createdAt: true, lastContactedAt: true })
+export const CreateContactSchema = ContactSchema.omit({ id: true, archived: true, createdAt: true, lastContactedAt: true })
 
 export const InteractionSchema = z.object({
   id: z.string(),
