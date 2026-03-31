@@ -15,4 +15,4 @@ export interface TabConfig {
   component: ComponentType
 }
 
-export const tabs: TabConfig[] = [todoTab, crmTab, financeTab, tweedTab, lucieTab, shoppingTab, healthTab, visionTab]
+export const tabs: TabConfig[] = [visionTab, todoTab, crmTab, financeTab, healthTab, shoppingTab, lucieTab, tweedTab]
