@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { tabs } from './tabs'
 
 interface NavigationStore {
   activeTabId: string
@@ -7,6 +6,6 @@ interface NavigationStore {
 }
 
 export const useNavigationStore = create<NavigationStore>((set) => ({
-  activeTabId: tabs[0].id,
+  activeTabId: 'vision',
   setActiveTabId: (id) => set({ activeTabId: id }),
 }))
