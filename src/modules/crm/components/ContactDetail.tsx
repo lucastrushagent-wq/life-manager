@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ArrowLeft, Plus, Trash2, Calendar, Linkedin } from 'lucide-react'
+import { useState, KeyboardEvent } from 'react'
+import { ArrowLeft, Plus, Trash2, Calendar, Linkedin, Pencil, X } from 'lucide-react'
 import { useCrmStore } from '../store'
 import { useContactDetail } from '../hooks/useContactDetail'
 import { AddInteractionForm } from './AddInteractionForm'
@@ -7,6 +7,13 @@ import { AddKeyDateForm } from './AddKeyDateForm'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
+const FOLLOW_UP_OPTIONS = [
+  { label: 'No reminder', value: '' },
+  { label: 'Weekly', value: '7' },
+  { label: 'Bi-weekly', value: '14' },
+  { label: 'Monthly', value: '30' },
+  { label: 'Quarterly', value: '90' },
+]
 
 interface Props {
   contactId: string
@@ -24,12 +31,68 @@ export function ContactDetail({ contactId, onBack }: Props) {
   const [editingNotes, setEditingNotes] = useState(false)
   const [notesValue, setNotesValue] = useState(contact?.notes ?? '')
 
+  // Edit mode state
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editRole, setEditRole] = useState('')
+  const [editCompany, setEditCompany] = useState('')
+  const [editEmail, setEditEmail] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [editLinkedin, setEditLinkedin] = useState('')
+  const [editFollowUpDays, setEditFollowUpDays] = useState('')
+  const [editTags, setEditTags] = useState<string[]>([])
+  const [tagInput, setTagInput] = useState('')
+
   if (!contact) return null
+
+  function startEditing() {
+    setEditName(contact!.name)
+    setEditRole(contact!.role ?? '')
+    setEditCompany(contact!.company ?? '')
+    setEditEmail(contact!.email ?? '')
+    setEditPhone(contact!.phone ?? '')
+    setEditLinkedin(contact!.linkedinUrl ?? '')
+    setEditFollowUpDays(contact!.followUpDays?.toString() ?? '')
+    setEditTags([...contact!.relationship])
+    setTagInput('')
+    setEditing(true)
+  }
+
+  function cancelEditing() {
+    setEditing(false)
+  }
+
+  async function saveEditing() {
+    if (!editName.trim()) return
+    await update(contactId, {
+      name: editName.trim(),
+      role: editRole.trim() || undefined,
+      company: editCompany.trim() || undefined,
+      email: editEmail.trim() || undefined,
+      phone: editPhone.trim() || undefined,
+      linkedinUrl: editLinkedin.trim() || undefined,
+      followUpDays: editFollowUpDays ? parseInt(editFollowUpDays) : undefined,
+      relationship: editTags,
+    })
+    setEditing(false)
+  }
 
   async function saveNotes() {
     await update(contactId, { notes: notesValue || undefined })
     setEditingNotes(false)
   }
+
+  function addTag() {
+    const tag = tagInput.trim().replace(/,$/, '')
+    if (tag && !editTags.includes(tag)) setEditTags(prev => [...prev, tag])
+    setTagInput('')
+  }
+
+  function handleTagKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() }
+  }
+
+  const inputCls = "text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 w-full"
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
@@ -37,59 +100,117 @@ export function ContactDetail({ contactId, onBack }: Props) {
         <ArrowLeft className="w-4 h-4" /> Back to contacts
       </button>
 
-      {/* Header */}
+      {/* Header card */}
       <div className="bg-white border border-gray-200 rounded-lg p-5 mb-5">
-        <h2 className="text-xl font-semibold text-gray-900 mb-0.5">{contact.name}</h2>
-        {contact.role && <p className="text-sm text-gray-500">{contact.role}</p>}
-        {contact.company && <p className="text-sm text-gray-400 mb-3">{contact.company}</p>}
-
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
-          {contact.email && <div><span className="text-gray-400">Email </span><span className="text-gray-700">{contact.email}</span></div>}
-          {contact.phone && <div><span className="text-gray-400">Phone </span><span className="text-gray-700">{contact.phone}</span></div>}
-          {contact.followUpDays && (
-            <div><span className="text-gray-400">Follow-up </span>
-              <span className="text-gray-700">Every {contact.followUpDays} days</span>
+        {editing ? (
+          <>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <input autoFocus className={`${inputCls} col-span-2 font-medium`} placeholder="Name *"
+                value={editName} onChange={e => setEditName(e.target.value)} />
+              <input className={inputCls} placeholder="Current role"
+                value={editRole} onChange={e => setEditRole(e.target.value)} />
+              <input className={inputCls} placeholder="Company"
+                value={editCompany} onChange={e => setEditCompany(e.target.value)} />
+              <input className={inputCls} placeholder="Email" type="email"
+                value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+              <input className={inputCls} placeholder="Phone" type="tel"
+                value={editPhone} onChange={e => setEditPhone(e.target.value)} />
+              <input className={inputCls} placeholder="LinkedIn URL"
+                value={editLinkedin} onChange={e => setEditLinkedin(e.target.value)} />
+              <select value={editFollowUpDays} onChange={e => setEditFollowUpDays(e.target.value)}
+                className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 bg-white text-gray-600">
+                {FOLLOW_UP_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
             </div>
-          )}
-          {contact.linkedinUrl && (
-            <div>
-              <a href={contact.linkedinUrl} target="_blank" rel="noreferrer"
-                className="flex items-center gap-1 text-blue-600 hover:text-blue-800">
-                <Linkedin className="w-3.5 h-3.5" /> LinkedIn
-              </a>
+
+            {/* Relationship tags */}
+            <div className="mb-3">
+              {editTags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-1.5">
+                  {editTags.map(tag => (
+                    <span key={tag} className="flex items-center gap-1 bg-purple-50 text-purple-700 text-xs px-2 py-0.5 rounded-full">
+                      {tag}
+                      <button onClick={() => setEditTags(editTags.filter(t => t !== tag))}><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <input type="text" placeholder="Add relationship tag, press Enter"
+                value={tagInput} onChange={e => setTagInput(e.target.value)}
+                onKeyDown={handleTagKeyDown} onBlur={addTag}
+                className="text-sm border border-gray-200 rounded px-2 py-1.5 w-full outline-none focus:border-blue-400 placeholder-gray-400" />
             </div>
-          )}
-        </div>
 
-        {contact.relationship.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-4">
-            {contact.relationship.map(r => (
-              <span key={r} className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">{r}</span>
-            ))}
-          </div>
-        )}
+            <div className="flex justify-end gap-2">
+              <button onClick={cancelEditing} className="text-sm px-3 py-1.5 text-gray-500 hover:text-gray-700">Cancel</button>
+              <button onClick={saveEditing} disabled={!editName.trim()}
+                className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40">
+                Save
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-start justify-between mb-0.5">
+              <h2 className="text-xl font-semibold text-gray-900">{contact.name}</h2>
+              <button onClick={startEditing}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition-colors mt-1">
+                <Pencil className="w-3 h-3" /> Edit
+              </button>
+            </div>
+            {contact.role && <p className="text-sm text-gray-500">{contact.role}</p>}
+            {contact.company && <p className="text-sm text-gray-400 mb-3">{contact.company}</p>}
 
-        {/* Inline notes edit */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Notes</span>
-            {!editingNotes && (
-              <button onClick={() => setEditingNotes(true)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
-            )}
-          </div>
-          {editingNotes ? (
-            <div>
-              <textarea value={notesValue} onChange={e => setNotesValue(e.target.value)} rows={3} autoFocus
-                className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 resize-none" />
-              <div className="flex justify-end gap-2 mt-1">
-                <button onClick={() => setEditingNotes(false)} className="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
-                <button onClick={saveNotes} className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
+              {contact.email && <div><span className="text-gray-400">Email </span><span className="text-gray-700">{contact.email}</span></div>}
+              {contact.phone && <div><span className="text-gray-400">Phone </span><span className="text-gray-700">{contact.phone}</span></div>}
+              {contact.followUpDays && (
+                <div><span className="text-gray-400">Follow-up </span>
+                  <span className="text-gray-700">Every {contact.followUpDays} days</span>
+                </div>
+              )}
+              {contact.linkedinUrl && (
+                <div>
+                  <a href={contact.linkedinUrl} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-1 text-blue-600 hover:text-blue-800">
+                    <Linkedin className="w-3.5 h-3.5" /> LinkedIn
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {contact.relationship.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-4">
+                {contact.relationship.map(r => (
+                  <span key={r} className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">{r}</span>
+                ))}
               </div>
+            )}
+
+            {/* Notes */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Notes</span>
+                {!editingNotes && (
+                  <button onClick={() => { setNotesValue(contact.notes ?? ''); setEditingNotes(true) }}
+                    className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
+                )}
+              </div>
+              {editingNotes ? (
+                <div>
+                  <textarea value={notesValue} onChange={e => setNotesValue(e.target.value)} rows={3} autoFocus
+                    className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 resize-none" />
+                  <div className="flex justify-end gap-2 mt-1">
+                    <button onClick={() => setEditingNotes(false)} className="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+                    <button onClick={saveNotes} className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600">{contact.notes || <span className="text-gray-300 italic">No notes yet</span>}</p>
+              )}
             </div>
-          ) : (
-            <p className="text-sm text-gray-600">{contact.notes || <span className="text-gray-300 italic">No notes yet</span>}</p>
-          )}
-        </div>
+          </>
+        )}
       </div>
 
       {/* Interaction Log */}
