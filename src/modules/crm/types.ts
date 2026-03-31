@@ -5,6 +5,7 @@ export interface Contact {
   phone?: string
   company?: string
   role?: string
+  linkedinUrl?: string
   relationship: string[]
   followUpDays?: number
   notes?: string

@@ -70,6 +70,7 @@ db.exec(`
 // Migrations — safe to run on existing databases (must run after CREATE TABLE)
 const contactCols = (db.prepare("PRAGMA table_info(contacts)").all() as { name: string }[]).map(c => c.name)
 if (!contactCols.includes('role')) db.exec("ALTER TABLE contacts ADD COLUMN role TEXT")
+if (!contactCols.includes('linkedinUrl')) db.exec("ALTER TABLE contacts ADD COLUMN linkedinUrl TEXT")
 
 const todoCols = (db.prepare("PRAGMA table_info(todos)").all() as { name: string }[]).map(c => c.name)
 if (!todoCols.includes('recurringTodoId')) db.exec("ALTER TABLE todos ADD COLUMN recurringTodoId TEXT")

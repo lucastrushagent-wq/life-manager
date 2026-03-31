@@ -34,6 +34,14 @@ export const crmService = {
     return request<void>(`${BASE}/${id}`, { method: 'DELETE' })
   },
 
+  importLinkedin(csv: string): Promise<{ created: number; updated: number; skipped: number }> {
+    return request(`${BASE}/import-linkedin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv }),
+    })
+  },
+
   // Interactions
   getInteractions(contactId: string): Promise<Interaction[]> {
     return request<Interaction[]>(`${BASE}/${contactId}/interactions`)

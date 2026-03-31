@@ -73,7 +73,7 @@ export function useCrm() {
 
   return {
     contacts: sortedContacts,
-    create, update, remove,
+    load, create, update, remove,
     sortField, sortDir, toggleSort,
     filterTag, setFilterTag,
     search, setSearch,

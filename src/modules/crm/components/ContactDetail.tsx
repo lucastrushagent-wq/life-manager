@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, Plus, Trash2, Calendar } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Calendar, Linkedin } from 'lucide-react'
 import { useCrmStore } from '../store'
 import { useContactDetail } from '../hooks/useContactDetail'
 import { AddInteractionForm } from './AddInteractionForm'
@@ -49,6 +49,14 @@ export function ContactDetail({ contactId, onBack }: Props) {
           {contact.followUpDays && (
             <div><span className="text-gray-400">Follow-up </span>
               <span className="text-gray-700">Every {contact.followUpDays} days</span>
+            </div>
+          )}
+          {contact.linkedinUrl && (
+            <div>
+              <a href={contact.linkedinUrl} target="_blank" rel="noreferrer"
+                className="flex items-center gap-1 text-blue-600 hover:text-blue-800">
+                <Linkedin className="w-3.5 h-3.5" /> LinkedIn
+              </a>
             </div>
           )}
         </div>
