@@ -7,9 +7,19 @@ import { AddTodoForm } from './AddTodoForm'
 import { TodoTable } from './TodoTable'
 import { AddRecurringTodoForm } from './AddRecurringTodoForm'
 import { RecurringTodoTable } from './RecurringTodoTable'
-import type { Priority } from '../types'
+import type { Priority, Todo } from '../types'
 
-type TabView = 'tasks' | 'recurring'
+type TabView = 'tasks' | 'future' | 'recurring'
+
+function isFuture(todo: Todo): boolean {
+  if (!todo.dueDate) return false
+  const due = new Date(todo.dueDate)
+  due.setHours(0, 0, 0, 0)
+  const cutoff = new Date()
+  cutoff.setHours(0, 0, 0, 0)
+  cutoff.setDate(cutoff.getDate() + 7)
+  return due > cutoff
+}
 
 export function TodoModule() {
   const {
@@ -24,10 +34,31 @@ export function TodoModule() {
 
   const [view, setView] = useState<TabView>('tasks')
   const [showForm, setShowForm] = useState(false)
+  const [futureAlert, setFutureAlert] = useState<string | null>(null)
+
+  const activeTodos = todos.filter(t => !isFuture(t))
+  const futureTodos = todos.filter(t => isFuture(t))
 
   function handleShare() {
     const { subject, body } = getEmailContent()
     shareToGmail(subject, body)
+  }
+
+  async function handleCreate(input: Parameters<typeof create>[0]) {
+    await create(input)
+    if (input.dueDate) {
+      const due = new Date(input.dueDate)
+      due.setHours(0, 0, 0, 0)
+      const cutoff = new Date()
+      cutoff.setHours(0, 0, 0, 0)
+      cutoff.setDate(cutoff.getDate() + 7)
+      if (due > cutoff) {
+        const days = Math.ceil((due.getTime() - new Date().setHours(0,0,0,0)) / (1000 * 60 * 60 * 24))
+        setFutureAlert(`Task added to Future — due in ${days} days`)
+        setTimeout(() => setFutureAlert(null), 4000)
+      }
+    }
+    setShowForm(false)
   }
 
   const shareLabel = status === 'sending' ? 'Sending...'
@@ -35,24 +66,32 @@ export function TodoModule() {
     : status === 'error' ? 'Failed'
     : 'Share'
 
+  const tabs: { id: TabView; label: string; count?: number }[] = [
+    { id: 'tasks', label: 'Tasks', count: activeTodos.filter(t => !t.completed).length },
+    { id: 'future', label: 'Future', count: futureTodos.filter(t => !t.completed).length },
+    { id: 'recurring', label: 'Recurring' },
+  ]
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-semibold text-gray-900">To-do</h1>
           <div className="flex rounded-md border border-gray-200 overflow-hidden text-sm">
-            <button
-              onClick={() => { setView('tasks'); setShowForm(false) }}
-              className={`px-3 py-1.5 ${view === 'tasks' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-            >
-              Tasks
-            </button>
-            <button
-              onClick={() => { setView('recurring'); setShowForm(false) }}
-              className={`px-3 py-1.5 border-l border-gray-200 ${view === 'recurring' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-            >
-              Recurring
-            </button>
+            {tabs.map((tab, i) => (
+              <button
+                key={tab.id}
+                onClick={() => { setView(tab.id); setShowForm(false) }}
+                className={`px-3 py-1.5 flex items-center gap-1.5 ${i > 0 ? 'border-l border-gray-200' : ''} ${view === tab.id ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+              >
+                {tab.label}
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${view === tab.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
         {!showForm && (
@@ -69,22 +108,31 @@ export function TodoModule() {
                 {shareLabel}
               </button>
             )}
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4" />
-              {view === 'tasks' ? 'Add task' : 'Add recurring'}
-            </button>
+            {view !== 'future' && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                {view === 'tasks' ? 'Add task' : 'Add recurring'}
+              </button>
+            )}
           </div>
         )}
       </div>
+
+      {futureAlert && (
+        <div className="mb-4 flex items-center justify-between px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+          {futureAlert}
+          <button onClick={() => setFutureAlert(null)} className="ml-4 opacity-60 hover:opacity-100 text-lg leading-none">×</button>
+        </div>
+      )}
 
       {view === 'tasks' && (
         <>
           {showForm && (
             <AddTodoForm
-              onAdd={input => { create(input); setShowForm(false) }}
+              onAdd={handleCreate}
               onCancel={() => setShowForm(false)}
             />
           )}
@@ -108,7 +156,40 @@ export function TodoModule() {
             />
           </div>
           <TodoTable
-            todos={todos}
+            todos={activeTodos}
+            sortField={sortField}
+            sortDir={sortDir}
+            onToggleSort={toggleSort}
+            onToggle={toggle}
+            onDelete={remove}
+          />
+        </>
+      )}
+
+      {view === 'future' && (
+        <>
+          <p className="text-sm text-gray-400 mb-4">Tasks due more than 7 days from today. They'll move to Tasks automatically when the date approaches.</p>
+          <div className="flex gap-3 mb-4">
+            <select
+              value={filterPriority}
+              onChange={e => setFilterPriority(e.target.value as Priority | 'all')}
+              className="text-sm border border-gray-200 rounded px-2 py-1.5 text-gray-600 outline-none focus:border-blue-400 bg-white"
+            >
+              <option value="all">All priorities</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Filter by tag..."
+              value={filterTag}
+              onChange={e => setFilterTag(e.target.value)}
+              className="text-sm border border-gray-200 rounded px-2 py-1.5 text-gray-600 outline-none focus:border-blue-400 w-40"
+            />
+          </div>
+          <TodoTable
+            todos={futureTodos}
             sortField={sortField}
             sortDir={sortDir}
             onToggleSort={toggleSort}
