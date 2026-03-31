@@ -1,4 +1,4 @@
-import { Layers } from 'lucide-react'
+import { PawPrint } from 'lucide-react'
 import type { TabConfig } from '../../core/tabs'
 
 function TweedModule() {
@@ -13,6 +13,6 @@ function TweedModule() {
 export const tweedTab: TabConfig = {
   id: 'tweed',
   label: 'Tweed',
-  icon: Layers,
+  icon: PawPrint,
   component: TweedModule,
 }
