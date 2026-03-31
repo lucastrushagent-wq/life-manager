@@ -1,4 +1,4 @@
-import { Eye } from 'lucide-react'
+import { Target } from 'lucide-react'
 import type { TabConfig } from '../../core/tabs'
 
 function VisionModule() {
@@ -13,6 +13,6 @@ function VisionModule() {
 export const visionTab: TabConfig = {
   id: 'vision',
   label: 'Vision',
-  icon: Eye,
+  icon: Target,
   component: VisionModule,
 }
