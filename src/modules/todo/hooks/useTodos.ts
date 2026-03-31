@@ -68,6 +68,7 @@ export function useTodos() {
   const todos = useTodoStore(s => s.todos)
   const load = useTodoStore(s => s.load)
   const create = useTodoStore(s => s.create)
+  const update = useTodoStore(s => s.update)
   const toggle = useTodoStore(s => s.toggle)
   const remove = useTodoStore(s => s.remove)
 
@@ -107,7 +108,7 @@ export function useTodos() {
 
   return {
     todos: sortedTodos,
-    create, toggle, remove,
+    create, update, toggle, remove,
     sortField, sortDir, toggleSort,
     filterPriority, setFilterPriority,
     filterTag, setFilterTag,

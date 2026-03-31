@@ -25,7 +25,7 @@ function isFuture(todo: Todo): boolean {
 
 export function TodoModule() {
   const {
-    todos, create, toggle, remove,
+    todos, create, update, toggle, remove,
     sortField, sortDir, toggleSort,
     filterPriority, setFilterPriority,
     filterTag, setFilterTag,
@@ -165,6 +165,7 @@ export function TodoModule() {
             sortDir={sortDir}
             onToggleSort={toggleSort}
             onToggle={toggle}
+            onUpdate={update}
             onDelete={remove}
           />
 
@@ -229,6 +230,7 @@ export function TodoModule() {
             sortDir={sortDir}
             onToggleSort={toggleSort}
             onToggle={toggle}
+            onUpdate={update}
             onDelete={remove}
           />
         </>

@@ -8,6 +8,7 @@ interface TodoStore {
   todos: Todo[]
   load: () => Promise<void>
   create: (input: z.infer<typeof CreateTodoSchema>) => Promise<void>
+  update: (id: string, patch: Partial<Omit<Todo, 'id' | 'createdAt'>>) => Promise<void>
   toggle: (id: string) => Promise<void>
   remove: (id: string) => Promise<void>
 }
@@ -20,6 +21,10 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
   create: async (input) => {
     await todoService.create(input)
     set({ todos: await todoService.getAll() })
+  },
+  update: async (id, patch) => {
+    await todoService.update(id, patch)
+    set(state => ({ todos: state.todos.map(t => t.id === id ? { ...t, ...patch } : t) }))
   },
   toggle: async (id) => {
     const todo = get().todos.find(t => t.id === id)
