@@ -87,7 +87,7 @@ function getOverdueCrmContacts(): OverdueCrmItem[] {
 
 export function generateDailyEmail(): { subject: string; text: string } {
   const today = new Date()
-  const dateLabel = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const dateLabel = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`
 
   const allTodos = db.prepare(
     'SELECT * FROM todos WHERE completed=0 ORDER BY priority, dueDate'
