@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, X, Check, RefreshCw, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, X, Check, RefreshCw, ExternalLink, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
 import { useShoppingStore } from '../store'
-import type { ShoppingFrequency } from '../types'
+import type { ShoppingFrequency, ShoppingItem } from '../types'
 import type { CreateItemData } from '../service'
 
 const FREQUENCY_LABELS: Record<ShoppingFrequency, string> = {
@@ -16,12 +16,24 @@ const EMPTY_FORM: CreateItemData = {
   frequency: undefined, storeCode: '', url: '',
 }
 
+function itemToForm(item: ShoppingItem): CreateItemData {
+  return {
+    name: item.name,
+    quantity: item.quantity ?? '',
+    notes: item.notes ?? '',
+    recurring: item.recurring,
+    frequency: item.frequency,
+    storeCode: item.storeCode ?? '',
+    url: item.url ?? '',
+  }
+}
+
 export function ShoppingModule() {
   const {
     stores, items, activeStoreId,
     loadStores, loadItems, setActiveStore,
     createStore, deleteStore,
-    addItem, toggleItem, deleteItem, clearChecked,
+    addItem, updateItem, toggleItem, deleteItem, clearChecked,
   } = useShoppingStore()
 
   const [form, setForm] = useState<CreateItemData>(EMPTY_FORM)
@@ -29,6 +41,8 @@ export function ShoppingModule() {
   const [showAddStore, setShowAddStore] = useState(false)
   const [newStoreName, setNewStoreName] = useState('')
   const [confirmDeleteStore, setConfirmDeleteStore] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<CreateItemData>(EMPTY_FORM)
 
   useEffect(() => { loadStores() }, [loadStores])
 
@@ -41,6 +55,31 @@ export function ShoppingModule() {
   const checked = activeItems.filter(i => i.checked)
 
   function patch(p: Partial<CreateItemData>) { setForm(f => ({ ...f, ...p })) }
+  function patchEdit(p: Partial<CreateItemData>) { setEditForm(f => ({ ...f, ...p })) }
+
+  function startEdit(item: ShoppingItem) {
+    setEditingId(item.id)
+    setEditForm(itemToForm(item))
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditForm(EMPTY_FORM)
+  }
+
+  async function handleSaveEdit(storeId: string) {
+    if (!editingId || !editForm.name.trim()) return
+    await updateItem(storeId, editingId, {
+      name: editForm.name.trim(),
+      quantity: editForm.quantity?.trim() || undefined,
+      notes: editForm.notes?.trim() || undefined,
+      storeCode: editForm.storeCode?.trim() || undefined,
+      url: editForm.url?.trim() || undefined,
+      recurring: editForm.recurring,
+      frequency: editForm.recurring ? editForm.frequency : undefined,
+    })
+    cancelEdit()
+  }
 
   async function handleAddItem(e: React.FormEvent) {
     e.preventDefault()
@@ -67,6 +106,37 @@ export function ShoppingModule() {
   }
 
   const inputCls = 'text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 w-full'
+
+  function renderEditForm(storeId: string) {
+    return (
+      <div className="flex-1 min-w-0">
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <input className={inputCls} placeholder="Item name" value={editForm.name} onChange={e => patchEdit({ name: e.target.value })} autoFocus />
+          <input className={inputCls} placeholder="Qty" value={editForm.quantity ?? ''} onChange={e => patchEdit({ quantity: e.target.value })} />
+          <input className={inputCls} placeholder="Notes" value={editForm.notes ?? ''} onChange={e => patchEdit({ notes: e.target.value })} />
+          <input className={inputCls} placeholder="Store code / SKU" value={editForm.storeCode ?? ''} onChange={e => patchEdit({ storeCode: e.target.value })} />
+          <input className={`${inputCls} col-span-2`} placeholder="Product URL" value={editForm.url ?? ''} onChange={e => patchEdit({ url: e.target.value })} />
+          <div className="col-span-2 flex items-center gap-3">
+            <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+              <input type="checkbox" checked={editForm.recurring} onChange={e => patchEdit({ recurring: e.target.checked, frequency: e.target.checked ? (editForm.frequency ?? 'monthly') : undefined })} className="rounded" />
+              Recurring
+            </label>
+            {editForm.recurring && (
+              <select className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 bg-white" value={editForm.frequency ?? 'monthly'} onChange={e => patchEdit({ frequency: e.target.value as ShoppingFrequency })}>
+                {(Object.keys(FREQUENCY_LABELS) as ShoppingFrequency[]).map(f => (
+                  <option key={f} value={f}>{FREQUENCY_LABELS[f]}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => handleSaveEdit(storeId)} disabled={!editForm.name.trim()} className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40">Save</button>
+          <button onClick={cancelEdit} className="text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700">Cancel</button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
@@ -119,13 +189,12 @@ export function ShoppingModule() {
           {/* Add item form */}
           <form onSubmit={handleAddItem} className="mb-6 rounded-lg border border-gray-200 p-3 bg-gray-50">
             <div className="flex gap-2 mb-2">
-              <input className={inputCls} placeholder="Item name" value={form.name} onChange={e => patch({ name: e.target.value })} autoFocus />
+              <input className={inputCls} placeholder="Item name" value={form.name} onChange={e => patch({ name: e.target.value })} />
               <input className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 w-20 flex-shrink-0" placeholder="Qty" value={form.quantity ?? ''} onChange={e => patch({ quantity: e.target.value })} />
               <button type="button" onClick={() => setShowMore(v => !v)} className="flex-shrink-0 text-xs text-gray-400 hover:text-gray-600 flex items-center gap-0.5">
                 More {showMore ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </button>
             </div>
-
             {showMore && (
               <div className="grid grid-cols-2 gap-2 mb-2">
                 <input className={inputCls} placeholder="Notes" value={form.notes ?? ''} onChange={e => patch({ notes: e.target.value })} />
@@ -146,7 +215,6 @@ export function ShoppingModule() {
                 </div>
               </div>
             )}
-
             <div className="flex justify-end">
               <button type="submit" disabled={!form.name.trim()} className="flex items-center gap-1 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40">
                 <Plus className="w-4 h-4" /> Add
@@ -154,42 +222,56 @@ export function ShoppingModule() {
             </div>
           </form>
 
-          {/* Unchecked items */}
           {unchecked.length === 0 && checked.length === 0 && (
             <p className="text-sm text-gray-400 text-center py-12">No items yet. Add one above.</p>
           )}
 
+          {/* Unchecked items */}
           {unchecked.length > 0 && (
             <div className="rounded-lg border border-gray-200 overflow-hidden mb-4">
               {unchecked.map((item, i) => (
                 <div key={item.id} className={`flex items-start gap-3 px-4 py-3 bg-white ${i < unchecked.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                  <button onClick={() => toggleItem(activeStoreId, item)} className="mt-0.5 w-5 h-5 rounded border-2 border-gray-300 hover:border-blue-400 flex-shrink-0 flex items-center justify-center" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-800">{item.name}</span>
-                      {item.quantity && <span className="text-xs text-gray-400">× {item.quantity}</span>}
-                      {item.storeCode && <span className="text-xs font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{item.storeCode}</span>}
-                      {item.recurring && (
-                        <span className="flex items-center gap-0.5 text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                          <RefreshCw className="w-2.5 h-2.5" />
-                          {item.frequency ? FREQUENCY_LABELS[item.frequency] : 'Recurring'}
-                        </span>
-                      )}
-                    </div>
-                    {(item.notes || item.url) && (
-                      <div className="flex items-center gap-3 mt-0.5">
-                        {item.notes && <span className="text-xs text-gray-400 italic">{item.notes}</span>}
-                        {item.url && (
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-0.5 text-xs text-blue-500 hover:text-blue-700">
-                            <ExternalLink className="w-3 h-3" /> Link
-                          </a>
+                  {editingId === item.id ? (
+                    <>
+                      <div className="mt-1 w-5 h-5 flex-shrink-0" />
+                      {renderEditForm(activeStoreId)}
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => toggleItem(activeStoreId, item)} className="mt-0.5 w-5 h-5 rounded border-2 border-gray-300 hover:border-blue-400 flex-shrink-0 flex items-center justify-center" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                          {item.quantity && <span className="text-xs text-gray-400">× {item.quantity}</span>}
+                          {item.storeCode && <span className="text-xs font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{item.storeCode}</span>}
+                          {item.recurring && (
+                            <span className="flex items-center gap-0.5 text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                              <RefreshCw className="w-2.5 h-2.5" />
+                              {item.frequency ? FREQUENCY_LABELS[item.frequency] : 'Recurring'}
+                            </span>
+                          )}
+                        </div>
+                        {(item.notes || item.url) && (
+                          <div className="flex items-center gap-3 mt-0.5">
+                            {item.notes && <span className="text-xs text-gray-400 italic">{item.notes}</span>}
+                            {item.url && (
+                              <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-0.5 text-xs text-blue-500 hover:text-blue-700">
+                                <ExternalLink className="w-3 h-3" /> Link
+                              </a>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                  <button onClick={() => deleteItem(activeStoreId, item.id)} className="text-gray-300 hover:text-red-400 flex-shrink-0 mt-0.5">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                      <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
+                        <button onClick={() => startEdit(item)} className="text-gray-300 hover:text-blue-400">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => deleteItem(activeStoreId, item.id)} className="text-gray-300 hover:text-red-400">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

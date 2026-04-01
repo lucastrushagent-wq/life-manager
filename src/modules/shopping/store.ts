@@ -12,6 +12,7 @@ interface ShoppingState {
   createStore: (name: string) => Promise<void>
   deleteStore: (id: string) => Promise<void>
   addItem: (storeId: string, data: import('./service').CreateItemData) => Promise<void>
+  updateItem: (storeId: string, itemId: string, patch: Partial<Omit<ShoppingItem, 'id' | 'storeId' | 'createdAt'>>) => Promise<void>
   toggleItem: (storeId: string, item: ShoppingItem) => Promise<void>
   deleteItem: (storeId: string, itemId: string) => Promise<void>
   clearChecked: (storeId: string) => Promise<void>
@@ -57,6 +58,16 @@ export const useShoppingStore = create<ShoppingState>((set, get) => ({
   addItem: async (storeId, data) => {
     const item = await shoppingService.addItem(storeId, data)
     set(s => ({ items: { ...s.items, [storeId]: [...(s.items[storeId] ?? []), item] } }))
+  },
+
+  updateItem: async (storeId, itemId, patch) => {
+    const updated = await shoppingService.updateItem(itemId, patch)
+    set(s => ({
+      items: {
+        ...s.items,
+        [storeId]: (s.items[storeId] ?? []).map(i => i.id === itemId ? updated : i),
+      },
+    }))
   },
 
   toggleItem: async (storeId, item) => {
