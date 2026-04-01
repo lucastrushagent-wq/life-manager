@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { FinanceAccount } from './types'
+import type { FinanceAccount, NetWorthSnapshot } from './types'
 import { CreateFinanceAccountSchema } from './schema'
 
 const BASE = 'http://localhost:3001/api/finance/accounts'
@@ -34,5 +34,11 @@ export const financeService = {
   async delete(id: string): Promise<void> {
     const res = await fetch(`${BASE}/${id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Failed to delete account')
+  },
+
+  async getSnapshots(): Promise<NetWorthSnapshot[]> {
+    const res = await fetch(`${BASE}/snapshots`)
+    if (!res.ok) throw new Error('Failed to fetch snapshots')
+    return res.json()
   },
 }

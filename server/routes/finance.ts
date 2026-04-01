@@ -14,6 +14,15 @@ interface AccountRow {
   createdAt: string
 }
 
+interface SnapshotRow {
+  id: string
+  date: string
+  totalAssets: number
+  totalLiabilities: number
+  netWorth: number
+  createdAt: string
+}
+
 function toAccount(row: AccountRow) {
   return {
     id: row.id,
@@ -27,6 +36,24 @@ function toAccount(row: AccountRow) {
   }
 }
 
+function saveSnapshot() {
+  const accounts = db.prepare('SELECT * FROM financeAccounts').all() as AccountRow[]
+  const totalAssets = accounts.filter(a => a.type === 'asset').reduce((s, a) => s + a.value, 0)
+  const totalLiabilities = accounts.filter(a => a.type === 'liability').reduce((s, a) => s + a.value, 0)
+  const netWorth = totalAssets - totalLiabilities
+  const date = new Date().toISOString().split('T')[0]
+  const now = new Date().toISOString()
+  db.prepare(`
+    INSERT INTO netWorthSnapshots (id, date, totalAssets, totalLiabilities, netWorth, createdAt)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(date) DO UPDATE SET
+      totalAssets=excluded.totalAssets,
+      totalLiabilities=excluded.totalLiabilities,
+      netWorth=excluded.netWorth
+  `).run(crypto.randomUUID(), date, totalAssets, totalLiabilities, netWorth, now)
+}
+
+// Accounts
 router.get('/', (_req, res) => {
   const rows = db.prepare('SELECT * FROM financeAccounts ORDER BY category, name').all() as AccountRow[]
   res.json(rows.map(toAccount))
@@ -42,6 +69,7 @@ router.post('/', (req, res) => {
   db.prepare(
     'INSERT INTO financeAccounts (id, name, category, type, value, lastUpdated, notes, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
   ).run(id, name, category, type, value, lastUpdated, notes ?? null, createdAt)
+  saveSnapshot()
   const row = db.prepare('SELECT * FROM financeAccounts WHERE id = ?').get(id) as AccountRow
   res.status(201).json(toAccount(row))
 })
@@ -62,13 +90,21 @@ router.put('/:id', (req, res) => {
     notes !== undefined ? (notes ?? null) : row.notes,
     id
   )
+  saveSnapshot()
   const updated = db.prepare('SELECT * FROM financeAccounts WHERE id = ?').get(id) as AccountRow
   res.json(toAccount(updated))
 })
 
 router.delete('/:id', (req, res) => {
   db.prepare('DELETE FROM financeAccounts WHERE id = ?').run(req.params.id)
+  saveSnapshot()
   res.status(204).end()
+})
+
+// Snapshots
+router.get('/snapshots', (_req, res) => {
+  const rows = db.prepare('SELECT * FROM netWorthSnapshots ORDER BY date ASC').all() as SnapshotRow[]
+  res.json(rows)
 })
 
 export default router

@@ -2,27 +2,55 @@ import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
 import { useFinanceStore } from '../store'
 import type { AccountCategory, AccountType, FinanceAccount } from '../types'
+import { NetWorthChart } from './NetWorthChart'
 
 const CATEGORY_LABELS: Record<AccountCategory, string> = {
   '401k': '401(k)',
   stocks: 'Stocks',
   property: 'Property',
+  savings_account: 'Savings Account',
+  debit_account: 'Debit Account',
+  cash: 'Cash',
+  crypto: 'Crypto',
+  vehicle: 'Vehicle',
+  bonds: 'Bonds',
+  business: 'Business',
   misc_asset: 'Misc Assets',
   credit_card: 'Credit Cards',
-  personal_loan: 'Personal Loans',
+  personal_loan: 'Personal Loan',
+  mortgage: 'Mortgage',
+  hecs_debt: 'HECS Debt',
+  student_loan: 'Student Loan',
+  other_debt: 'Other Debt',
 }
 
 const CATEGORY_TYPE: Record<AccountCategory, AccountType> = {
   '401k': 'asset',
   stocks: 'asset',
   property: 'asset',
+  savings_account: 'asset',
+  debit_account: 'asset',
+  cash: 'asset',
+  crypto: 'asset',
+  vehicle: 'asset',
+  bonds: 'asset',
+  business: 'asset',
   misc_asset: 'asset',
   credit_card: 'liability',
   personal_loan: 'liability',
+  mortgage: 'liability',
+  hecs_debt: 'liability',
+  student_loan: 'liability',
+  other_debt: 'liability',
 }
 
-const ASSET_CATEGORIES: AccountCategory[] = ['401k', 'stocks', 'property', 'misc_asset']
-const LIABILITY_CATEGORIES: AccountCategory[] = ['credit_card', 'personal_loan']
+const ASSET_CATEGORIES: AccountCategory[] = [
+  '401k', 'stocks', 'property', 'savings_account', 'debit_account',
+  'cash', 'crypto', 'vehicle', 'bonds', 'business', 'misc_asset',
+]
+const LIABILITY_CATEGORIES: AccountCategory[] = [
+  'credit_card', 'personal_loan', 'mortgage', 'hecs_debt', 'student_loan', 'other_debt',
+]
 
 function formatCurrency(n: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
@@ -49,7 +77,7 @@ const DEFAULT_FORM: FormState = {
 }
 
 export function FinanceModule() {
-  const { accounts, load, create, update, remove } = useFinanceStore()
+  const { accounts, snapshots, load, create, update, remove } = useFinanceStore()
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setFormState] = useState<FormState>(DEFAULT_FORM)
@@ -182,7 +210,7 @@ export function FinanceModule() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="rounded-xl border border-green-100 bg-green-50 px-5 py-4">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp className="w-4 h-4 text-green-500" />
@@ -207,6 +235,14 @@ export function FinanceModule() {
           </div>
         </div>
       </div>
+
+      {/* Chart */}
+      {snapshots.length > 0 && (
+        <div className="mb-8 rounded-xl border border-gray-200 bg-white px-5 py-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-4">History</h2>
+          <NetWorthChart snapshots={snapshots} />
+        </div>
+      )}
 
       {/* Add / Edit form */}
       {showForm && (
@@ -236,11 +272,22 @@ export function FinanceModule() {
                 <option value="401k">401(k)</option>
                 <option value="stocks">Stocks</option>
                 <option value="property">Property</option>
+                <option value="savings_account">Savings Account</option>
+                <option value="debit_account">Debit Account</option>
+                <option value="cash">Cash</option>
+                <option value="crypto">Crypto</option>
+                <option value="vehicle">Vehicle</option>
+                <option value="bonds">Bonds</option>
+                <option value="business">Business</option>
                 <option value="misc_asset">Misc Asset</option>
               </optgroup>
               <optgroup label="Liabilities">
                 <option value="credit_card">Credit Card</option>
                 <option value="personal_loan">Personal Loan</option>
+                <option value="mortgage">Mortgage</option>
+                <option value="hecs_debt">HECS Debt</option>
+                <option value="student_loan">Student Loan</option>
+                <option value="other_debt">Other Debt</option>
               </optgroup>
             </select>
             <input

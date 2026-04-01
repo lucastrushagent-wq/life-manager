@@ -76,6 +76,15 @@ db.exec(`
     notes       TEXT,
     createdAt   TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS netWorthSnapshots (
+    id              TEXT PRIMARY KEY,
+    date            TEXT NOT NULL UNIQUE,
+    totalAssets     REAL NOT NULL,
+    totalLiabilities REAL NOT NULL,
+    netWorth        REAL NOT NULL,
+    createdAt       TEXT NOT NULL
+  );
 `)
 
 // Migrations — safe to run on existing databases (must run after CREATE TABLE)
