@@ -114,19 +114,17 @@ export function TodoModule() {
                   {(status === 'idle' || status === 'error') && <Share2 className="w-4 h-4" />}
                   {shareLabel}
                 </button>
-                {emailStatus !== 'unconfigured' && (
-                  <button
-                    onClick={sendNow}
-                    disabled={emailStatus === 'sending'}
-                    title="Send morning briefing email now"
-                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {emailStatus === 'sending' && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {emailStatus === 'sent' && <Check className="w-4 h-4 text-green-500" />}
-                    {(emailStatus === 'idle' || emailStatus === 'error') && <Mail className="w-4 h-4" />}
-                    {emailStatus === 'sending' ? 'Sending...' : emailStatus === 'sent' ? 'Sent!' : emailStatus === 'error' ? 'Failed' : 'Email briefing'}
-                  </button>
-                )}
+                <button
+                  onClick={sendNow}
+                  disabled={emailStatus === 'sending' || emailStatus === 'unconfigured'}
+                  title={emailStatus === 'unconfigured' ? 'Add EMAIL_USER, EMAIL_PASS, EMAIL_TO to .env to enable' : 'Send morning briefing email now'}
+                  className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {emailStatus === 'sending' && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {emailStatus === 'sent' && <Check className="w-4 h-4 text-green-500" />}
+                  {(emailStatus === 'idle' || emailStatus === 'error' || emailStatus === 'unconfigured') && <Mail className="w-4 h-4" />}
+                  {emailStatus === 'sending' ? 'Sending...' : emailStatus === 'sent' ? 'Sent!' : emailStatus === 'error' ? 'Failed' : 'Email briefing'}
+                </button>
               </>
             )}
             {view !== 'future' && (
