@@ -86,7 +86,7 @@ export function generateMorningEmail(): { subject: string; html: string; text: s
   const dateLabel = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
   const allTodos = db.prepare(
-    'SELECT * FROM todos WHERE completed=0 AND recurringTodoId IS NULL ORDER BY priority, dueDate'
+    'SELECT * FROM todos WHERE completed=0 ORDER BY priority, dueDate'
   ).all() as TodoRow[]
 
   const todayStr = today.toISOString().split('T')[0]
