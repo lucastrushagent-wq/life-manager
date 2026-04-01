@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { sendMorningEmail, isEmailConfigured } from '../emailService.js'
-import { generateMorningEmail } from '../emailContent.js'
+import { generateDailyEmail } from '../emailContent.js'
 
 const router = Router()
 
@@ -14,11 +14,11 @@ router.post('/send-now', async (_req, res) => {
   }
 })
 
-// Preview — returns the email body as HTML (for testing)
+// Preview — returns the plain text email body
 router.get('/preview', (_req, res) => {
-  const { html } = generateMorningEmail()
-  res.setHeader('Content-Type', 'text/html')
-  res.send(html)
+  const { text } = generateDailyEmail()
+  res.setHeader('Content-Type', 'text/plain')
+  res.send(text)
 })
 
 // Status — is email configured?

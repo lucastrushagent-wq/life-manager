@@ -123,7 +123,7 @@ export function TodoModule() {
                   {emailStatus === 'sending' && <Loader2 className="w-4 h-4 animate-spin" />}
                   {emailStatus === 'sent' && <Check className="w-4 h-4 text-green-500" />}
                   {(emailStatus === 'idle' || emailStatus === 'error' || emailStatus === 'unconfigured') && <Mail className="w-4 h-4" />}
-                  {emailStatus === 'sending' ? 'Sending...' : emailStatus === 'sent' ? 'Sent!' : emailStatus === 'error' ? 'Failed' : 'Email briefing'}
+                  {emailStatus === 'sending' ? 'Sending...' : emailStatus === 'sent' ? 'Sent!' : emailStatus === 'error' ? 'Failed' : 'Send email'}
                 </button>
               </>
             )}

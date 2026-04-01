@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer'
-import { generateMorningEmail } from './emailContent.js'
+import { generateDailyEmail } from './emailContent.js'
 
 export interface EmailConfig {
   smtpUser: string
@@ -25,7 +25,7 @@ export async function sendMorningEmail(): Promise<{ ok: boolean; error?: string 
     return { ok: false, error: 'Email not configured. Set EMAIL_USER, EMAIL_PASS, EMAIL_TO in .env' }
   }
 
-  const { subject, html, text } = generateMorningEmail()
+  const { subject, text } = generateDailyEmail()
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -41,7 +41,6 @@ export async function sendMorningEmail(): Promise<{ ok: boolean; error?: string 
       to: config.toEmail,
       subject,
       text,
-      html,
     })
     return { ok: true }
   } catch (err) {
