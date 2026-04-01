@@ -4,7 +4,12 @@ import { db } from '../db.js'
 const router = Router()
 
 interface StoreRow { id: string; name: string; sortOrder: number; createdAt: string }
-interface ItemRow  { id: string; storeId: string; name: string; quantity: string | null; notes: string | null; checked: number; createdAt: string }
+interface ItemRow {
+  id: string; storeId: string; name: string
+  quantity: string | null; notes: string | null; checked: number
+  recurring: number; frequency: string | null; storeCode: string | null; url: string | null
+  createdAt: string
+}
 
 function toStore(r: StoreRow) {
   return { id: r.id, name: r.name, sortOrder: r.sortOrder, createdAt: r.createdAt }
@@ -17,6 +22,10 @@ function toItem(r: ItemRow) {
     quantity: r.quantity ?? undefined,
     notes: r.notes ?? undefined,
     checked: r.checked === 1,
+    recurring: r.recurring === 1,
+    frequency: r.frequency ?? undefined,
+    storeCode: r.storeCode ?? undefined,
+    url: r.url ?? undefined,
     createdAt: r.createdAt,
   }
 }
@@ -53,24 +62,36 @@ router.get('/stores/:storeId/items', (req, res) => {
 })
 
 router.post('/stores/:storeId/items', (req, res) => {
-  const { name, quantity, notes } = req.body
+  const { name, quantity, notes, recurring, frequency, storeCode, url } = req.body
   if (!name?.trim()) return res.status(400).json({ error: 'Name required' })
   const id = crypto.randomUUID()
   db.prepare(
-    'INSERT INTO shoppingItems (id, storeId, name, quantity, notes, checked, createdAt) VALUES (?, ?, ?, ?, ?, 0, ?)'
-  ).run(id, req.params.storeId, name.trim(), quantity?.trim() || null, notes?.trim() || null, new Date().toISOString())
+    'INSERT INTO shoppingItems (id, storeId, name, quantity, notes, checked, recurring, frequency, storeCode, url, createdAt) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)'
+  ).run(
+    id, req.params.storeId, name.trim(),
+    quantity?.trim() || null, notes?.trim() || null,
+    recurring ? 1 : 0, frequency?.trim() || null,
+    storeCode?.trim() || null, url?.trim() || null,
+    new Date().toISOString()
+  )
   res.status(201).json(toItem(db.prepare('SELECT * FROM shoppingItems WHERE id=?').get(id) as ItemRow))
 })
 
 router.put('/items/:id', (req, res) => {
   const row = db.prepare('SELECT * FROM shoppingItems WHERE id=?').get(req.params.id) as ItemRow | undefined
   if (!row) return res.status(404).json({ error: 'Not found' })
-  const { name, quantity, notes, checked } = req.body
-  db.prepare('UPDATE shoppingItems SET name=?, quantity=?, notes=?, checked=? WHERE id=?').run(
+  const { name, quantity, notes, checked, recurring, frequency, storeCode, url } = req.body
+  db.prepare(
+    'UPDATE shoppingItems SET name=?, quantity=?, notes=?, checked=?, recurring=?, frequency=?, storeCode=?, url=? WHERE id=?'
+  ).run(
     name ?? row.name,
     quantity !== undefined ? (quantity?.trim() || null) : row.quantity,
     notes !== undefined ? (notes?.trim() || null) : row.notes,
     checked !== undefined ? (checked ? 1 : 0) : row.checked,
+    recurring !== undefined ? (recurring ? 1 : 0) : row.recurring,
+    frequency !== undefined ? (frequency?.trim() || null) : row.frequency,
+    storeCode !== undefined ? (storeCode?.trim() || null) : row.storeCode,
+    url !== undefined ? (url?.trim() || null) : row.url,
     req.params.id
   )
   res.json(toItem(db.prepare('SELECT * FROM shoppingItems WHERE id=?').get(req.params.id) as ItemRow))
@@ -81,7 +102,6 @@ router.delete('/items/:id', (req, res) => {
   res.status(204).end()
 })
 
-// Clear all checked items for a store
 router.delete('/stores/:storeId/checked', (req, res) => {
   db.prepare('DELETE FROM shoppingItems WHERE storeId=? AND checked=1').run(req.params.storeId)
   res.status(204).end()

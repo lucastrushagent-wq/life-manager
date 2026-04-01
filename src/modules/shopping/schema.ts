@@ -15,6 +15,10 @@ export const ShoppingItemSchema = z.object({
   quantity: z.string().optional(),
   notes: z.string().optional(),
   checked: z.boolean(),
+  recurring: z.boolean(),
+  frequency: z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly']).optional(),
+  storeCode: z.string().optional(),
+  url: z.string().optional(),
   createdAt: z.string(),
 }) satisfies z.ZodType<ShoppingItem>
 

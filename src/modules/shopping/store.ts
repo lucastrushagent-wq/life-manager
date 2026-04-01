@@ -11,7 +11,7 @@ interface ShoppingState {
   setActiveStore: (id: string) => void
   createStore: (name: string) => Promise<void>
   deleteStore: (id: string) => Promise<void>
-  addItem: (storeId: string, data: { name: string; quantity?: string; notes?: string }) => Promise<void>
+  addItem: (storeId: string, data: import('./service').CreateItemData) => Promise<void>
   toggleItem: (storeId: string, item: ShoppingItem) => Promise<void>
   deleteItem: (storeId: string, itemId: string) => Promise<void>
   clearChecked: (storeId: string) => Promise<void>

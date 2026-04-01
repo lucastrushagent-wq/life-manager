@@ -2,6 +2,8 @@ import type { ShoppingStore, ShoppingItem } from './types'
 
 const BASE = 'http://localhost:3001/api/shopping'
 
+export type CreateItemData = Omit<ShoppingItem, 'id' | 'storeId' | 'checked' | 'createdAt'>
+
 export const shoppingService = {
   async getStores(): Promise<ShoppingStore[]> {
     const res = await fetch(`${BASE}/stores`)
@@ -30,7 +32,7 @@ export const shoppingService = {
     return res.json()
   },
 
-  async addItem(storeId: string, data: { name: string; quantity?: string; notes?: string }): Promise<ShoppingItem> {
+  async addItem(storeId: string, data: CreateItemData): Promise<ShoppingItem> {
     const res = await fetch(`${BASE}/stores/${storeId}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

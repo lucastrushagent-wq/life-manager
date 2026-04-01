@@ -5,6 +5,8 @@ export interface ShoppingStore {
   createdAt: string
 }
 
+export type ShoppingFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'quarterly'
+
 export interface ShoppingItem {
   id: string
   storeId: string
@@ -12,5 +14,9 @@ export interface ShoppingItem {
   quantity?: string
   notes?: string
   checked: boolean
+  recurring: boolean
+  frequency?: ShoppingFrequency
+  storeCode?: string
+  url?: string
   createdAt: string
 }

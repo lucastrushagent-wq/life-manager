@@ -114,6 +114,13 @@ if (!contactCols.includes('lastContactedAt')) db.exec("ALTER TABLE contacts ADD 
 const todoCols = (db.prepare("PRAGMA table_info(todos)").all() as { name: string }[]).map(c => c.name)
 if (!todoCols.includes('recurringTodoId')) db.exec("ALTER TABLE todos ADD COLUMN recurringTodoId TEXT")
 
+// Shopping item migrations
+const shoppingItemCols = (db.prepare("PRAGMA table_info(shoppingItems)").all() as { name: string }[]).map(c => c.name)
+if (!shoppingItemCols.includes('recurring')) db.exec("ALTER TABLE shoppingItems ADD COLUMN recurring INTEGER NOT NULL DEFAULT 0")
+if (!shoppingItemCols.includes('frequency')) db.exec("ALTER TABLE shoppingItems ADD COLUMN frequency TEXT")
+if (!shoppingItemCols.includes('storeCode')) db.exec("ALTER TABLE shoppingItems ADD COLUMN storeCode TEXT")
+if (!shoppingItemCols.includes('url')) db.exec("ALTER TABLE shoppingItems ADD COLUMN url TEXT")
+
 // Seed default shopping stores if none exist
 const storeCount = (db.prepare("SELECT COUNT(*) as n FROM shoppingStores").get() as { n: number }).n
 if (storeCount === 0) {
