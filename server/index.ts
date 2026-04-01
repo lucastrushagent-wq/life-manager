@@ -6,6 +6,8 @@ import todosRouter from './routes/todos.js'
 import crmRouter from './routes/crm.js'
 import recurringTodosRouter from './routes/recurringTodos.js'
 import financeRouter from './routes/finance.js'
+import emailRouter from './routes/email.js'
+import { startCronJobs } from './cron.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT ?? 3001
@@ -20,6 +22,7 @@ app.use('/api/todos', todosRouter)
 app.use('/api/contacts', crmRouter)
 app.use('/api/recurring-todos', recurringTodosRouter)
 app.use('/api/finance/accounts', financeRouter)
+app.use('/api/email', emailRouter)
 
 if (isProd) {
   const distDir = path.join(__dirname, '..', 'dist')
@@ -31,4 +34,5 @@ if (isProd) {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
+  startCronJobs()
 })

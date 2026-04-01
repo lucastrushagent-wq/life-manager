@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Plus, Share2, Check, Loader2, Users } from 'lucide-react'
+import { Plus, Share2, Check, Loader2, Users, Mail } from 'lucide-react'
 import { useTodos } from '../hooks/useTodos'
 import { useGmailShare } from '../hooks/useGmailShare'
 import { useRecurringTodos } from '../hooks/useRecurringTodos'
 import { useCrmFollowUps } from '../hooks/useCrmFollowUps'
+import { useMorningEmail } from '../hooks/useMorningEmail'
 import { useNavigationStore } from '../../../core/navigationStore'
 import { AddTodoForm } from './AddTodoForm'
 import { TodoTable } from './TodoTable'
@@ -34,6 +35,7 @@ export function TodoModule() {
   const { shareToGmail, status } = useGmailShare()
   const { recurringTodos, create: createRecurring, remove: removeRecurring } = useRecurringTodos()
   const followUps = useCrmFollowUps()
+  const { status: emailStatus, sendNow } = useMorningEmail()
   const setActiveTab = useNavigationStore(s => s.setActiveTabId)
 
   const [view, setView] = useState<TabView>('tasks')
@@ -101,16 +103,31 @@ export function TodoModule() {
         {!showForm && (
           <div className="flex gap-2">
             {view === 'tasks' && (
-              <button
-                onClick={handleShare}
-                disabled={status === 'sending'}
-                className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {status === 'sending' && <Loader2 className="w-4 h-4 animate-spin" />}
-                {status === 'sent' && <Check className="w-4 h-4 text-green-500" />}
-                {(status === 'idle' || status === 'error') && <Share2 className="w-4 h-4" />}
-                {shareLabel}
-              </button>
+              <>
+                <button
+                  onClick={handleShare}
+                  disabled={status === 'sending'}
+                  className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {status === 'sending' && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {status === 'sent' && <Check className="w-4 h-4 text-green-500" />}
+                  {(status === 'idle' || status === 'error') && <Share2 className="w-4 h-4" />}
+                  {shareLabel}
+                </button>
+                {emailStatus !== 'unconfigured' && (
+                  <button
+                    onClick={sendNow}
+                    disabled={emailStatus === 'sending'}
+                    title="Send morning briefing email now"
+                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {emailStatus === 'sending' && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {emailStatus === 'sent' && <Check className="w-4 h-4 text-green-500" />}
+                    {(emailStatus === 'idle' || emailStatus === 'error') && <Mail className="w-4 h-4" />}
+                    {emailStatus === 'sending' ? 'Sending...' : emailStatus === 'sent' ? 'Sent!' : emailStatus === 'error' ? 'Failed' : 'Email briefing'}
+                  </button>
+                )}
+              </>
             )}
             {view !== 'future' && (
               <button
