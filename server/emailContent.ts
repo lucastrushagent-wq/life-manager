@@ -89,7 +89,8 @@ export function generateMorningEmail(): { subject: string; html: string; text: s
     'SELECT * FROM todos WHERE completed=0 ORDER BY priority, dueDate'
   ).all() as TodoRow[]
 
-  const todayStr = today.toISOString().split('T')[0]
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
   const todayMid = todayMidnight()
   const sevenDays = new Date(todayMid.getTime() + 7 * 86_400_000)
 
