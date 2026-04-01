@@ -7,6 +7,7 @@ import todosRouter from './routes/todos.js'
 import crmRouter from './routes/crm.js'
 import recurringTodosRouter from './routes/recurringTodos.js'
 import financeRouter from './routes/finance.js'
+import shoppingRouter from './routes/shopping.js'
 import emailRouter from './routes/email.js'
 import { startCronJobs } from './cron.js'
 
@@ -23,6 +24,7 @@ app.use('/api/todos', todosRouter)
 app.use('/api/contacts', crmRouter)
 app.use('/api/recurring-todos', recurringTodosRouter)
 app.use('/api/finance/accounts', financeRouter)
+app.use('/api/shopping', shoppingRouter)
 app.use('/api/email', emailRouter)
 
 if (isProd) {

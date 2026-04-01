@@ -66,6 +66,23 @@ db.exec(`
     day         INTEGER NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS shoppingStores (
+    id        TEXT PRIMARY KEY,
+    name      TEXT NOT NULL UNIQUE,
+    sortOrder INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS shoppingItems (
+    id        TEXT PRIMARY KEY,
+    storeId   TEXT NOT NULL REFERENCES shoppingStores(id) ON DELETE CASCADE,
+    name      TEXT NOT NULL,
+    quantity  TEXT,
+    notes     TEXT,
+    checked   INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS financeAccounts (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,
@@ -96,3 +113,13 @@ if (!contactCols.includes('lastContactedAt')) db.exec("ALTER TABLE contacts ADD 
 
 const todoCols = (db.prepare("PRAGMA table_info(todos)").all() as { name: string }[]).map(c => c.name)
 if (!todoCols.includes('recurringTodoId')) db.exec("ALTER TABLE todos ADD COLUMN recurringTodoId TEXT")
+
+// Seed default shopping stores if none exist
+const storeCount = (db.prepare("SELECT COUNT(*) as n FROM shoppingStores").get() as { n: number }).n
+if (storeCount === 0) {
+  const now = new Date().toISOString()
+  const insert = db.prepare("INSERT INTO shoppingStores (id, name, sortOrder, createdAt) VALUES (?, ?, ?, ?)")
+  insert.run(crypto.randomUUID(), 'Costco', 0, now)
+  insert.run(crypto.randomUUID(), 'Amazon', 1, now)
+  insert.run(crypto.randomUUID(), 'Walmart', 2, now)
+}
