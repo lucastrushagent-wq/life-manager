@@ -98,10 +98,16 @@ export function generateDailyEmail(): { subject: string; text: string } {
 
   const crmOverdue = getOverdueCrmContacts()
 
+  const visionRow = db.prepare("SELECT content FROM visionStatement WHERE id = 'singleton'").get() as { content: string } | undefined
+
   const lines: string[] = [
     dateLabel,
     '',
   ]
+
+  if (visionRow?.content) {
+    lines.push(`"${visionRow.content}"`, '')
+  }
 
   if (allTodos.length > 0) {
     lines.push('Tasks:', '')
