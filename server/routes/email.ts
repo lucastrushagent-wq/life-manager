@@ -6,7 +6,7 @@ const router = Router()
 
 // Manual trigger — send now
 router.post('/send-now', async (_req, res) => {
-  const result = await sendMorningEmail()
+  const result = await sendMorningEmail(true) // force=true bypasses the once-per-day guard
   if (result.ok) {
     res.json({ ok: true })
   } else {

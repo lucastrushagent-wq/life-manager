@@ -94,6 +94,12 @@ db.exec(`
     createdAt   TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS emailLog (
+    id        TEXT PRIMARY KEY,
+    sentDate  TEXT NOT NULL UNIQUE,
+    sentAt    TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS netWorthSnapshots (
     id              TEXT PRIMARY KEY,
     date            TEXT NOT NULL UNIQUE,
