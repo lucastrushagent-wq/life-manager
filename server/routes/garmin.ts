@@ -5,9 +5,9 @@ import { syncGarminData } from '../garmin.js'
 const router = Router()
 
 router.get('/status', (_req, res) => {
-  const last = db.prepare('SELECT * FROM garminSyncLog ORDER BY syncedAt DESC LIMIT 1').get()
+  const last = db.prepare('SELECT * FROM garminSyncLog ORDER BY syncedAt DESC LIMIT 5').all()
   const configured = !!(process.env.GARMIN_EMAIL && process.env.GARMIN_PASSWORD)
-  res.json({ configured, last: last ?? null })
+  res.json({ configured, logs: last })
 })
 
 router.post('/sync', async (req, res) => {
