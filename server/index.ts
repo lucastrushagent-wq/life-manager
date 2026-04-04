@@ -12,6 +12,7 @@ import shoppingRouter from './routes/shopping.js'
 import healthRouter from './routes/health.js'
 import fitnessRouter from './routes/fitness.js'
 import emailRouter from './routes/email.js'
+import garminRouter from './routes/garmin.js'
 import { startCronJobs } from './cron.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -36,6 +37,7 @@ app.use('/api/shopping', shoppingRouter)
 app.use('/api/health', healthRouter)
 app.use('/api/fitness', fitnessRouter)
 app.use('/api/email', emailRouter)
+app.use('/api/garmin', garminRouter)
 
 if (isProd) {
   const distDir = path.join(__dirname, '..', 'dist')

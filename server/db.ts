@@ -233,6 +233,15 @@ db.exec(`
     netWorth        REAL NOT NULL,
     createdAt       TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS garminSyncLog (
+    id               TEXT PRIMARY KEY,
+    syncedAt         TEXT NOT NULL,
+    daysBack         INTEGER NOT NULL,
+    activitiesAdded  INTEGER NOT NULL DEFAULT 0,
+    metricsAdded     INTEGER NOT NULL DEFAULT 0,
+    error            TEXT
+  );
 `)
 
 // Migrations — safe to run on existing databases (must run after CREATE TABLE)
@@ -253,6 +262,14 @@ if (!shoppingItemCols.includes('recurring')) db.exec("ALTER TABLE shoppingItems 
 if (!shoppingItemCols.includes('frequency')) db.exec("ALTER TABLE shoppingItems ADD COLUMN frequency TEXT")
 if (!shoppingItemCols.includes('storeCode')) db.exec("ALTER TABLE shoppingItems ADD COLUMN storeCode TEXT")
 if (!shoppingItemCols.includes('url')) db.exec("ALTER TABLE shoppingItems ADD COLUMN url TEXT")
+
+// Garmin sync migrations
+const healthMetricCols = (db.prepare("PRAGMA table_info(healthMetrics)").all() as { name: string }[]).map(c => c.name)
+if (!healthMetricCols.includes('source')) db.exec("ALTER TABLE healthMetrics ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'")
+if (!healthMetricCols.includes('garminId')) db.exec("ALTER TABLE healthMetrics ADD COLUMN garminId TEXT")
+
+const sessionCols = (db.prepare("PRAGMA table_info(fitnessSessions)").all() as { name: string }[]).map(c => c.name)
+if (!sessionCols.includes('garminId')) db.exec("ALTER TABLE fitnessSessions ADD COLUMN garminId TEXT")
 
 // Seed default shopping stores if none exist
 const storeCount = (db.prepare("SELECT COUNT(*) as n FROM shoppingStores").get() as { n: number }).n

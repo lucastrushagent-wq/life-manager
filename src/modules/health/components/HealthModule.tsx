@@ -3,6 +3,7 @@ import { MetricsTab } from './MetricsTab'
 import { BloodWorkTab } from './BloodWorkTab'
 import { MedicationsTab } from './MedicationsTab'
 import { MedicalHistoryTab } from './MedicalHistoryTab'
+import { GarminSyncButton } from './GarminSyncButton'
 import { useHealthStore } from '../store'
 
 type InnerTab = 'body' | 'activity' | 'bloodwork' | 'medications' | 'history'
@@ -17,11 +18,14 @@ const TABS: { id: InnerTab; label: string }[] = [
 
 export function HealthModule() {
   const [activeTab, setActiveTab] = useState<InnerTab>('body')
-  const { loaded } = useHealthStore()
+  const { loaded, load } = useHealthStore()
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
-      <h1 className="text-xl font-semibold text-gray-900 mb-6">Health</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-semibold text-gray-900">Health</h1>
+        <GarminSyncButton onSyncComplete={load} />
+      </div>
 
       <div className="flex gap-1 mb-6 border-b border-gray-200">
         {TABS.map(tab => (
