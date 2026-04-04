@@ -1,53 +1,82 @@
-import { useState } from 'react'
-import { VisionStatementTab } from './VisionStatementTab'
-import { CoreValuesTab } from './CoreValuesTab'
-import { GoalsTab } from './GoalsTab'
-import { ManifestoTab } from './ManifestoTab'
+import { VisionStatementSection } from './VisionStatementSection'
+import { CoreValuesSection } from './CoreValuesSection'
+import { VisionImageSection } from './VisionImageSection'
+import { GoalsSection } from './GoalsSection'
+import { ManifestoSection } from './ManifestoSection'
 import { useVisionStore } from '../store'
 
-type InnerTab = 'statement' | 'values' | 'goals' | 'manifesto'
-
-const TABS: { id: InnerTab; label: string }[] = [
-  { id: 'statement', label: 'Vision Statement' },
-  { id: 'values', label: 'Core Values' },
-  { id: 'goals', label: 'Goals' },
-  { id: 'manifesto', label: 'Manifesto' },
-]
+function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="mb-4">
+      <h2 className="text-base font-semibold text-gray-800">{title}</h2>
+      <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
+    </div>
+  )
+}
 
 export function VisionModule() {
-  const [activeTab, setActiveTab] = useState<InnerTab>('statement')
   const { loaded } = useVisionStore()
 
-  return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
-      <h1 className="text-xl font-semibold text-gray-900 mb-6">Vision</h1>
-
-      <div className="flex gap-1 mb-6 border-b border-gray-200">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              activeTab === tab.id
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {!loaded ? (
+  if (!loaded) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <h1 className="text-xl font-semibold text-gray-900 mb-6">Vision</h1>
         <p className="text-sm text-gray-400 text-center py-12">Loading…</p>
-      ) : (
-        <div>
-          {activeTab === 'statement' && <VisionStatementTab />}
-          {activeTab === 'values' && <CoreValuesTab />}
-          {activeTab === 'goals' && <GoalsTab />}
-          {activeTab === 'manifesto' && <ManifestoTab />}
-        </div>
-      )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto px-6 py-8 space-y-10">
+      <h1 className="text-xl font-semibold text-gray-900">Vision</h1>
+
+      <section>
+        <SectionHeader
+          title="Vision Statement"
+          subtitle="The single sentence (or paragraph) that describes the life you are building."
+        />
+        <VisionStatementSection />
+      </section>
+
+      <hr className="border-gray-100" />
+
+      <section>
+        <SectionHeader
+          title="Core Values"
+          subtitle="The principles that guide every decision you make."
+        />
+        <CoreValuesSection />
+      </section>
+
+      <hr className="border-gray-100" />
+
+      <section>
+        <SectionHeader
+          title="Future Vision"
+          subtitle="A photo of where you want to be — your destination made real."
+        />
+        <VisionImageSection />
+      </section>
+
+      <hr className="border-gray-100" />
+
+      <section>
+        <SectionHeader
+          title="Goals"
+          subtitle="What you are working toward, organized by area of life."
+        />
+        <GoalsSection />
+      </section>
+
+      <hr className="border-gray-100" />
+
+      <section>
+        <SectionHeader
+          title="Personal Manifesto"
+          subtitle="Your declaration of how you live, what you stand for, and what you refuse to accept."
+        />
+        <ManifestoSection />
+      </section>
     </div>
   )
 }

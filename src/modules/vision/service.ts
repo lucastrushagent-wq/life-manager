@@ -1,4 +1,4 @@
-import type { VisionStatement, CoreValue, Goal, Manifesto } from './types'
+import type { VisionStatement, CoreValue, Goal, Manifesto, VisionImage } from './types'
 
 const API = '/api/vision'
 
@@ -55,6 +55,22 @@ export const visionService = {
   async deleteGoal(id: string): Promise<void> {
     const r = await fetch(`${API}/goals/${id}`, { method: 'DELETE' })
     if (!r.ok) throw new Error('Failed to delete goal')
+  },
+
+  // Vision image
+  async getImage(): Promise<VisionImage> {
+    const r = await fetch(`${API}/image`)
+    if (!r.ok) throw new Error('Failed to fetch image')
+    return r.json()
+  },
+  async uploadImage(dataUrl: string): Promise<VisionImage> {
+    const r = await fetch(`${API}/image`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dataUrl }) })
+    if (!r.ok) throw new Error('Failed to upload image')
+    return r.json()
+  },
+  async deleteImage(): Promise<void> {
+    const r = await fetch(`${API}/image`, { method: 'DELETE' })
+    if (!r.ok) throw new Error('Failed to delete image')
   },
 
   // Manifesto

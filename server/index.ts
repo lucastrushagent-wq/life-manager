@@ -21,7 +21,11 @@ const isProd = process.env.NODE_ENV === 'production'
 const app = express()
 
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: '20mb' }))
+
+// Serve uploaded files (vision image, etc.)
+const dataDir = path.join(__dirname, '..', 'data', 'uploads')
+app.use('/uploads', express.static(dataDir))
 
 app.use('/api/vision', visionRouter)
 app.use('/api/todos', todosRouter)

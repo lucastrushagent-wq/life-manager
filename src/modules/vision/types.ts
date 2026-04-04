@@ -48,3 +48,8 @@ export interface Manifesto {
   content: string
   updatedAt: string
 }
+
+export interface VisionImage {
+  exists: boolean
+  url?: string
+}

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { VisionStatement, CoreValue, Goal, Manifesto } from './types'
+import type { VisionStatement, CoreValue, Goal, Manifesto, VisionImage } from './types'
 import { visionService } from './service'
 
 interface VisionStore {
@@ -7,6 +7,7 @@ interface VisionStore {
   values: CoreValue[]
   goals: Goal[]
   manifesto: Manifesto | null
+  image: VisionImage
   loaded: boolean
   load: () => Promise<void>
   saveVision: (content: string) => Promise<void>
@@ -17,6 +18,8 @@ interface VisionStore {
   updateGoal: (id: string, patch: Partial<Omit<Goal, 'id' | 'createdAt'>>) => Promise<void>
   deleteGoal: (id: string) => Promise<void>
   saveManifesto: (content: string) => Promise<void>
+  uploadImage: (dataUrl: string) => Promise<void>
+  deleteImage: () => Promise<void>
 }
 
 export const useVisionStore = create<VisionStore>((set) => ({
@@ -24,16 +27,18 @@ export const useVisionStore = create<VisionStore>((set) => ({
   values: [],
   goals: [],
   manifesto: null,
+  image: { exists: false },
   loaded: false,
 
   load: async () => {
-    const [vision, values, goals, manifesto] = await Promise.all([
+    const [vision, values, goals, manifesto, image] = await Promise.all([
       visionService.getVision(),
       visionService.getValues(),
       visionService.getGoals(),
       visionService.getManifesto(),
+      visionService.getImage(),
     ])
-    set({ vision, values, goals, manifesto, loaded: true })
+    set({ vision, values, goals, manifesto, image, loaded: true })
   },
 
   saveVision: async (content) => {
@@ -70,5 +75,14 @@ export const useVisionStore = create<VisionStore>((set) => ({
   saveManifesto: async (content) => {
     const manifesto = await visionService.saveManifesto(content)
     set({ manifesto })
+  },
+
+  uploadImage: async (dataUrl) => {
+    const image = await visionService.uploadImage(dataUrl)
+    set({ image })
+  },
+  deleteImage: async () => {
+    await visionService.deleteImage()
+    set({ image: { exists: false } })
   },
 }))

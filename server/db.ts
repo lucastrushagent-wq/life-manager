@@ -178,6 +178,12 @@ db.exec(`
     updatedAt TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS visionImage (
+    id        TEXT PRIMARY KEY,
+    filename  TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS fitnessSessions (
     id          TEXT PRIMARY KEY,
     date        TEXT NOT NULL,
