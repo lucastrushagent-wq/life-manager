@@ -13,6 +13,8 @@ export interface Todo {
   tags: string[]
   createdAt: string
   recurringTodoId?: string
+  completedAt?: string
+  deletedAt?: string
 }
 
 export interface RecurringTodo {

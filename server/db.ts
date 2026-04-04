@@ -238,6 +238,8 @@ if (!contactCols.includes('lastContactedAt')) db.exec("ALTER TABLE contacts ADD 
 
 const todoCols = (db.prepare("PRAGMA table_info(todos)").all() as { name: string }[]).map(c => c.name)
 if (!todoCols.includes('recurringTodoId')) db.exec("ALTER TABLE todos ADD COLUMN recurringTodoId TEXT")
+if (!todoCols.includes('completedAt')) db.exec("ALTER TABLE todos ADD COLUMN completedAt TEXT")
+if (!todoCols.includes('deletedAt')) db.exec("ALTER TABLE todos ADD COLUMN deletedAt TEXT")
 
 // Shopping item migrations
 const shoppingItemCols = (db.prepare("PRAGMA table_info(shoppingItems)").all() as { name: string }[]).map(c => c.name)

@@ -10,9 +10,10 @@ import { AddTodoForm } from './AddTodoForm'
 import { TodoTable } from './TodoTable'
 import { AddRecurringTodoForm } from './AddRecurringTodoForm'
 import { RecurringTodoTable } from './RecurringTodoTable'
+import { TodoArchive } from './TodoArchive'
 import type { Priority, Todo } from '../types'
 
-type TabView = 'tasks' | 'future' | 'recurring'
+type TabView = 'tasks' | 'future' | 'recurring' | 'archive'
 
 function isFuture(todo: Todo): boolean {
   if (!todo.dueDate) return false
@@ -76,6 +77,7 @@ export function TodoModule() {
     { id: 'tasks', label: 'Tasks', count: activeTodos.filter(t => !t.completed).length },
     { id: 'future', label: 'Future', count: futureTodos.filter(t => !t.completed).length },
     { id: 'recurring', label: 'Recurring' },
+    { id: 'archive', label: 'Archive' },
   ]
 
   return (
@@ -127,7 +129,7 @@ export function TodoModule() {
                 </button>
               </>
             )}
-            {view !== 'future' && (
+            {view !== 'future' && view !== 'archive' && (
               <button
                 onClick={() => setShowForm(true)}
                 className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -265,6 +267,8 @@ export function TodoModule() {
           />
         </>
       )}
+
+      {view === 'archive' && <TodoArchive />}
     </div>
   )
 }

@@ -15,6 +15,9 @@ export const todoService = {
   getAll(): Promise<Todo[]> {
     return request<Todo[]>(API)
   },
+  getArchive(): Promise<Todo[]> {
+    return request<Todo[]>(`${API}/archive`)
+  },
   create(input: z.infer<typeof CreateTodoSchema>): Promise<Todo> {
     const todo = {
       ...input,
