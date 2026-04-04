@@ -1,18 +1,18 @@
+import { useEffect } from 'react'
 import { Target } from 'lucide-react'
 import type { TabConfig } from '../../core/tabs'
+import { VisionModule } from './components/VisionModule'
+import { useVisionStore } from './store'
 
-function VisionModule() {
-  return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
-      <h1 className="text-xl font-semibold text-gray-900 mb-2">Vision</h1>
-      <p className="text-sm text-gray-400">Coming soon.</p>
-    </div>
-  )
+function VisionTab() {
+  const load = useVisionStore(s => s.load)
+  useEffect(() => { load() }, [load])
+  return <VisionModule />
 }
 
 export const visionTab: TabConfig = {
   id: 'vision',
   label: 'Vision',
   icon: Target,
-  component: VisionModule,
+  component: VisionTab,
 }

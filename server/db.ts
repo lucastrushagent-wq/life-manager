@@ -147,6 +147,37 @@ db.exec(`
     sentAt    TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS visionStatement (
+    id        TEXT PRIMARY KEY,
+    content   TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS visionValues (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    description TEXT,
+    sortOrder   INTEGER NOT NULL DEFAULT 0,
+    createdAt   TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS visionGoals (
+    id          TEXT PRIMARY KEY,
+    category    TEXT NOT NULL,
+    title       TEXT NOT NULL,
+    description TEXT,
+    timeframe   TEXT NOT NULL,
+    targetDate  TEXT,
+    status      TEXT NOT NULL DEFAULT 'active',
+    createdAt   TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS visionManifesto (
+    id        TEXT PRIMARY KEY,
+    content   TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS fitnessSessions (
     id          TEXT PRIMARY KEY,
     date        TEXT NOT NULL,

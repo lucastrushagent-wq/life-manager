@@ -3,6 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import visionRouter from './routes/vision.js'
 import todosRouter from './routes/todos.js'
 import crmRouter from './routes/crm.js'
 import recurringTodosRouter from './routes/recurringTodos.js'
@@ -22,6 +23,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
+app.use('/api/vision', visionRouter)
 app.use('/api/todos', todosRouter)
 app.use('/api/contacts', crmRouter)
 app.use('/api/recurring-todos', recurringTodosRouter)
