@@ -56,9 +56,12 @@ interface OverdueCrmItem {
 }
 
 function getOverdueCrmContacts(): OverdueCrmItem[] {
-  const contacts = db.prepare(
-    'SELECT id, name, company, followUpDays, lastContactedAt, archived FROM contacts WHERE archived=0 AND followUpDays IS NOT NULL'
-  ).all() as ContactRow[]
+  const contacts = db.prepare(`
+    SELECT c.id, c.name, c.company, c.followUpDays,
+      (SELECT MAX(i.date) FROM interactions i WHERE i.contactId = c.id) as lastContactedAt
+    FROM contacts c
+    WHERE c.archived=0 AND c.followUpDays IS NOT NULL
+  `).all() as ContactRow[]
 
   const today = todayMidnight()
   const overdue: OverdueCrmItem[] = []
