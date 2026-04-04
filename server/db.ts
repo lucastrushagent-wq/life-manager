@@ -147,6 +147,41 @@ db.exec(`
     sentAt    TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS fitnessSessions (
+    id          TEXT PRIMARY KEY,
+    date        TEXT NOT NULL,
+    type        TEXT NOT NULL,
+    durationMins INTEGER NOT NULL,
+    distanceKm  REAL,
+    calories    REAL,
+    avgHr       REAL,
+    maxHr       REAL,
+    notes       TEXT,
+    createdAt   TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS fitnessSets (
+    id        TEXT PRIMARY KEY,
+    date      TEXT NOT NULL,
+    exercise  TEXT NOT NULL,
+    sets      INTEGER NOT NULL,
+    reps      INTEGER NOT NULL,
+    weightKg  REAL,
+    notes     TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS fitnessRecords (
+    id        TEXT PRIMARY KEY,
+    category  TEXT NOT NULL,
+    name      TEXT NOT NULL,
+    value     REAL NOT NULL,
+    unit      TEXT NOT NULL,
+    date      TEXT NOT NULL,
+    notes     TEXT,
+    createdAt TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS netWorthSnapshots (
     id              TEXT PRIMARY KEY,
     date            TEXT NOT NULL UNIQUE,

@@ -6,6 +6,7 @@ import { tweedTab } from '../modules/tweed'
 import { lucieTab } from '../modules/lucie'
 import { shoppingTab } from '../modules/shopping'
 import { healthTab } from '../modules/health'
+import { fitnessTab } from '../modules/fitness'
 import { visionTab } from '../modules/vision'
 
 export interface TabConfig {
@@ -15,4 +16,4 @@ export interface TabConfig {
   component: ComponentType
 }
 
-export const tabs: TabConfig[] = [visionTab, todoTab, crmTab, financeTab, healthTab, shoppingTab, lucieTab, tweedTab]
+export const tabs: TabConfig[] = [visionTab, todoTab, crmTab, financeTab, healthTab, fitnessTab, shoppingTab, lucieTab, tweedTab]

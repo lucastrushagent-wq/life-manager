@@ -6,6 +6,7 @@ import { tweedTools } from '../modules/tweed/tools'
 import { lucieTools } from '../modules/lucie/tools'
 import { shoppingTools } from '../modules/shopping/tools'
 import { healthTools } from '../modules/health/tools'
+import { fitnessTools } from '../modules/fitness/tools'
 import { visionTools } from '../modules/vision/tools'
 
 export interface McpTool {
@@ -23,5 +24,6 @@ export const mcpTools: McpTool[] = [
   ...lucieTools,
   ...shoppingTools,
   ...healthTools,
+  ...fitnessTools,
   ...visionTools,
 ]
