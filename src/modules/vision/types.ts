@@ -25,6 +25,11 @@ export interface VisionStatement {
   updatedAt: string
 }
 
+export interface MissionStatement {
+  content: string
+  updatedAt: string
+}
+
 export interface CoreValue {
   id: string
   name: string

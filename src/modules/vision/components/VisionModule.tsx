@@ -1,4 +1,5 @@
 import { VisionStatementSection } from './VisionStatementSection'
+import { MissionStatementSection } from './MissionStatementSection'
 import { CoreValuesSection } from './CoreValuesSection'
 import { VisionImageSection } from './VisionImageSection'
 import { GoalsSection } from './GoalsSection'
@@ -36,6 +37,16 @@ export function VisionModule() {
           subtitle="The single sentence (or paragraph) that describes the life you are building."
         />
         <VisionStatementSection />
+      </section>
+
+      <hr className="border-gray-100" />
+
+      <section>
+        <SectionHeader
+          title="Mission Statement"
+          subtitle="How you will achieve your vision — the work you do and the impact you make."
+        />
+        <MissionStatementSection />
       </section>
 
       <hr className="border-gray-100" />

@@ -153,6 +153,12 @@ db.exec(`
     updatedAt TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS visionMission (
+    id        TEXT PRIMARY KEY,
+    content   TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS visionValues (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,

@@ -1,9 +1,10 @@
 import { create } from 'zustand'
-import type { VisionStatement, CoreValue, Goal, Manifesto, VisionImage } from './types'
+import type { VisionStatement, MissionStatement, CoreValue, Goal, Manifesto, VisionImage } from './types'
 import { visionService } from './service'
 
 interface VisionStore {
   vision: VisionStatement | null
+  mission: MissionStatement | null
   values: CoreValue[]
   goals: Goal[]
   manifesto: Manifesto | null
@@ -11,6 +12,7 @@ interface VisionStore {
   loaded: boolean
   load: () => Promise<void>
   saveVision: (content: string) => Promise<void>
+  saveMission: (content: string) => Promise<void>
   addValue: (data: Pick<CoreValue, 'name' | 'description'>) => Promise<void>
   updateValue: (id: string, patch: Partial<Pick<CoreValue, 'name' | 'description' | 'sortOrder'>>) => Promise<void>
   deleteValue: (id: string) => Promise<void>
@@ -24,6 +26,7 @@ interface VisionStore {
 
 export const useVisionStore = create<VisionStore>((set) => ({
   vision: null,
+  mission: null,
   values: [],
   goals: [],
   manifesto: null,
@@ -31,19 +34,24 @@ export const useVisionStore = create<VisionStore>((set) => ({
   loaded: false,
 
   load: async () => {
-    const [vision, values, goals, manifesto, image] = await Promise.all([
+    const [vision, mission, values, goals, manifesto, image] = await Promise.all([
       visionService.getVision(),
+      visionService.getMission(),
       visionService.getValues(),
       visionService.getGoals(),
       visionService.getManifesto(),
       visionService.getImage(),
     ])
-    set({ vision, values, goals, manifesto, image, loaded: true })
+    set({ vision, mission, values, goals, manifesto, image, loaded: true })
   },
 
   saveVision: async (content) => {
     const vision = await visionService.saveVision(content)
     set({ vision })
+  },
+  saveMission: async (content) => {
+    const mission = await visionService.saveMission(content)
+    set({ mission })
   },
 
   addValue: async (data) => {

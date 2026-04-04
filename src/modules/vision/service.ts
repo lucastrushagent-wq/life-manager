@@ -1,4 +1,4 @@
-import type { VisionStatement, CoreValue, Goal, Manifesto, VisionImage } from './types'
+import type { VisionStatement, MissionStatement, CoreValue, Goal, Manifesto, VisionImage } from './types'
 
 const API = '/api/vision'
 
@@ -12,6 +12,18 @@ export const visionService = {
   async saveVision(content: string): Promise<VisionStatement> {
     const r = await fetch(`${API}/statement`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) })
     if (!r.ok) throw new Error('Failed to save vision')
+    return r.json()
+  },
+
+  // Mission statement
+  async getMission(): Promise<MissionStatement | null> {
+    const r = await fetch(`${API}/mission`)
+    if (!r.ok) throw new Error('Failed to fetch mission')
+    return r.json()
+  },
+  async saveMission(content: string): Promise<MissionStatement> {
+    const r = await fetch(`${API}/mission`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) })
+    if (!r.ok) throw new Error('Failed to save mission')
     return r.json()
   },
 

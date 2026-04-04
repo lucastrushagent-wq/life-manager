@@ -28,6 +28,24 @@ router.put('/statement', (req, res) => {
   res.json(db.prepare("SELECT * FROM visionStatement WHERE id = 'singleton'").get())
 })
 
+// ── Mission Statement ─────────────────────────────────────────────────────────
+
+router.get('/mission', (_req, res) => {
+  const row = db.prepare("SELECT * FROM visionMission WHERE id = 'singleton'").get()
+  res.json(row ?? null)
+})
+
+router.put('/mission', (req, res) => {
+  const { content } = req.body
+  if (!content && content !== '') return res.status(400).json({ error: 'content required' })
+  const updatedAt = new Date().toISOString()
+  db.prepare(`
+    INSERT INTO visionMission (id, content, updatedAt) VALUES ('singleton', ?, ?)
+    ON CONFLICT(id) DO UPDATE SET content = excluded.content, updatedAt = excluded.updatedAt
+  `).run(content, updatedAt)
+  res.json(db.prepare("SELECT * FROM visionMission WHERE id = 'singleton'").get())
+})
+
 // ── Core Values ───────────────────────────────────────────────────────────────
 
 router.get('/values', (_req, res) => {
