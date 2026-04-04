@@ -1,1 +1,55 @@
-// Health module types — to be defined
+export type MetricCategory = 'body' | 'activity'
+export type BodyMetric = 'weight' | 'body_fat' | 'bmi' | 'muscle_mass' | 'hydration'
+export type ActivityMetric = 'steps' | 'resting_hr' | 'sleep_hours' | 'active_minutes' | 'vo2_max' | 'stress'
+export type HealthMetric = BodyMetric | ActivityMetric
+
+export interface HealthMetricEntry {
+  id: string
+  date: string
+  category: MetricCategory
+  metric: HealthMetric
+  value: number
+  unit: string
+  notes?: string
+  createdAt: string
+}
+
+export interface BloodWorkEntry {
+  id: string
+  testDate: string
+  marker: string
+  value: number
+  unit: string
+  referenceMin?: number
+  referenceMax?: number
+  notes?: string
+  createdAt: string
+}
+
+export type MedHistoryCategory = 'condition' | 'surgery' | 'allergy' | 'family_history' | 'immunization' | 'other'
+export type Severity = 'mild' | 'moderate' | 'severe'
+export type ConditionStatus = 'active' | 'resolved' | 'managed'
+
+export interface MedicalHistoryEntry {
+  id: string
+  category: MedHistoryCategory
+  title: string
+  date?: string
+  notes?: string
+  severity?: Severity
+  status?: ConditionStatus
+  createdAt: string
+}
+
+export interface Medication {
+  id: string
+  name: string
+  dose: string
+  frequency: string
+  purpose?: string
+  startDate?: string
+  refillDate?: string
+  active: boolean
+  notes?: string
+  createdAt: string
+}

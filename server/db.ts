@@ -94,6 +94,53 @@ db.exec(`
     createdAt   TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS healthMetrics (
+    id        TEXT PRIMARY KEY,
+    date      TEXT NOT NULL,
+    category  TEXT NOT NULL,
+    metric    TEXT NOT NULL,
+    value     REAL NOT NULL,
+    unit      TEXT NOT NULL,
+    notes     TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS bloodWork (
+    id           TEXT PRIMARY KEY,
+    testDate     TEXT NOT NULL,
+    marker       TEXT NOT NULL,
+    value        REAL NOT NULL,
+    unit         TEXT NOT NULL,
+    referenceMin REAL,
+    referenceMax REAL,
+    notes        TEXT,
+    createdAt    TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS medications (
+    id         TEXT PRIMARY KEY,
+    name       TEXT NOT NULL,
+    dose       TEXT NOT NULL,
+    frequency  TEXT NOT NULL,
+    purpose    TEXT,
+    startDate  TEXT,
+    refillDate TEXT,
+    active     INTEGER NOT NULL DEFAULT 1,
+    notes      TEXT,
+    createdAt  TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS medicalHistory (
+    id        TEXT PRIMARY KEY,
+    category  TEXT NOT NULL,
+    title     TEXT NOT NULL,
+    date      TEXT,
+    notes     TEXT,
+    severity  TEXT,
+    status    TEXT,
+    createdAt TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS emailLog (
     id        TEXT PRIMARY KEY,
     sentDate  TEXT NOT NULL UNIQUE,
