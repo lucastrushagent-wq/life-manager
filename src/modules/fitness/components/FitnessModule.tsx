@@ -3,12 +3,14 @@ import { SessionsTab } from './SessionsTab'
 import { StrengthTab } from './StrengthTab'
 import { RecordsTab } from './RecordsTab'
 import { GarminSyncButton } from '../../health/components/GarminSyncButton'
+import { MetricsTab } from '../../health/components/MetricsTab'
 import { useFitnessStore } from '../store'
 
-type InnerTab = 'sessions' | 'strength' | 'records'
+type InnerTab = 'sessions' | 'activity' | 'strength' | 'records'
 
 const TABS: { id: InnerTab; label: string }[] = [
   { id: 'sessions', label: 'Sessions' },
+  { id: 'activity', label: 'Activity' },
   { id: 'strength', label: 'Strength' },
   { id: 'records', label: 'Personal Records' },
 ]
@@ -45,6 +47,7 @@ export function FitnessModule() {
       ) : (
         <div>
           {activeTab === 'sessions' && <SessionsTab />}
+          {activeTab === 'activity' && <MetricsTab category="activity" />}
           {activeTab === 'strength' && <StrengthTab />}
           {activeTab === 'records' && <RecordsTab />}
         </div>

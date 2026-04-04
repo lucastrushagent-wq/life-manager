@@ -6,11 +6,10 @@ import { MedicalHistoryTab } from './MedicalHistoryTab'
 import { GarminSyncButton } from './GarminSyncButton'
 import { useHealthStore } from '../store'
 
-type InnerTab = 'body' | 'activity' | 'bloodwork' | 'medications' | 'history'
+type InnerTab = 'body' | 'bloodwork' | 'medications' | 'history'
 
 const TABS: { id: InnerTab; label: string }[] = [
   { id: 'body', label: 'Body' },
-  { id: 'activity', label: 'Activity' },
   { id: 'bloodwork', label: 'Blood Work' },
   { id: 'medications', label: 'Medications' },
   { id: 'history', label: 'Medical History' },
@@ -48,7 +47,6 @@ export function HealthModule() {
       ) : (
         <div>
           {activeTab === 'body' && <MetricsTab category="body" />}
-          {activeTab === 'activity' && <MetricsTab category="activity" />}
           {activeTab === 'bloodwork' && <BloodWorkTab />}
           {activeTab === 'medications' && <MedicationsTab />}
           {activeTab === 'history' && <MedicalHistoryTab />}

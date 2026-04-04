@@ -3,10 +3,12 @@ import { Dumbbell } from 'lucide-react'
 import type { TabConfig } from '../../core/tabs'
 import { FitnessModule } from './components/FitnessModule'
 import { useFitnessStore } from './store'
+import { useHealthStore } from '../health/store'
 
 function FitnessTab() {
-  const load = useFitnessStore(s => s.load)
-  useEffect(() => { load() }, [load])
+  const loadFitness = useFitnessStore(s => s.load)
+  const loadHealth = useHealthStore(s => s.load)
+  useEffect(() => { loadFitness(); loadHealth() }, [loadFitness, loadHealth])
   return <FitnessModule />
 }
 
