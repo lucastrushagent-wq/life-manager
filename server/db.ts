@@ -242,6 +242,17 @@ db.exec(`
     metricsAdded     INTEGER NOT NULL DEFAULT 0,
     error            TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS expenses (
+    id          TEXT PRIMARY KEY,
+    date        TEXT NOT NULL,
+    description TEXT NOT NULL,
+    amount      REAL NOT NULL,
+    category    TEXT NOT NULL DEFAULT 'other',
+    source      TEXT NOT NULL,
+    notes       TEXT,
+    importedAt  TEXT NOT NULL
+  );
 `)
 
 // Migrations — safe to run on existing databases (must run after CREATE TABLE)

@@ -3,6 +3,9 @@ import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign } from 'l
 import { useFinanceStore } from '../store'
 import type { AccountCategory, AccountType, FinanceAccount } from '../types'
 import { NetWorthChart } from './NetWorthChart'
+import { ExpensesTab } from './ExpensesTab'
+
+type InnerTab = 'net_worth' | 'expenses'
 
 const CATEGORY_LABELS: Record<AccountCategory, string> = {
   '401k': '401(k)',
@@ -78,6 +81,7 @@ const DEFAULT_FORM: FormState = {
 
 export function FinanceModule() {
   const { accounts, snapshots, load, create, update, remove } = useFinanceStore()
+  const [activeTab, setActiveTab] = useState<InnerTab>('net_worth')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setFormState] = useState<FormState>(DEFAULT_FORM)
@@ -197,8 +201,8 @@ export function FinanceModule() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Net Worth</h1>
-        {!showForm && (
+        <h1 className="text-xl font-semibold text-gray-900">Finance</h1>
+        {activeTab === 'net_worth' && !showForm && (
           <button
             onClick={startAdd}
             className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -208,6 +212,25 @@ export function FinanceModule() {
           </button>
         )}
       </div>
+
+      {/* Inner tabs */}
+      <div className="flex gap-1 mb-6 border-b border-gray-200">
+        {([['net_worth', 'Net Worth'], ['expenses', 'Expenses']] as [InnerTab, string][]).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              activeTab === id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'expenses' && <ExpensesTab />}
+      {activeTab !== 'expenses' && <>
+
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -345,6 +368,7 @@ export function FinanceModule() {
           {renderGroup(LIABILITY_CATEGORIES, 'Liabilities', 'text-red-500')}
         </div>
       )}
+      </>}
     </div>
   )
 }

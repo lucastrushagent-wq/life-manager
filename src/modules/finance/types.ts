@@ -32,6 +32,29 @@ export interface FinanceAccount {
   createdAt: string
 }
 
+export type ExpenseCategory =
+  | 'food_dining'
+  | 'groceries'
+  | 'transport'
+  | 'shopping'
+  | 'entertainment'
+  | 'health_fitness'
+  | 'utilities'
+  | 'travel'
+  | 'subscriptions'
+  | 'other'
+
+export interface Expense {
+  id: string
+  date: string
+  description: string
+  amount: number
+  category: ExpenseCategory
+  source: string
+  notes?: string
+  importedAt: string
+}
+
 export interface NetWorthSnapshot {
   id: string
   date: string
