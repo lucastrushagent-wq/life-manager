@@ -153,30 +153,44 @@ export function SessionsTab() {
       ) : (
         <div className="space-y-2">
           {sessions.map(s => (
-            <div key={s.id} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-              <span className={`mt-0.5 px-2 py-0.5 rounded text-xs font-medium ${TYPE_COLORS[s.type]}`}>
-                {TYPE_LABELS[s.type]}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-sm font-medium text-gray-900">{formatDuration(s.durationMins)}</span>
-                  {s.distanceKm && <span className="text-xs text-gray-500">{s.distanceKm} km</span>}
-                  {s.calories && <span className="text-xs text-gray-500">{s.calories} kcal</span>}
-                  {s.avgHr && <span className="text-xs text-gray-500">avg {s.avgHr} bpm</span>}
+            <div key={s.id} className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+              <div className="flex items-start gap-3">
+                <span className={`mt-0.5 px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 ${TYPE_COLORS[s.type]}`}>
+                  {TYPE_LABELS[s.type]}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <span className="text-sm font-medium text-gray-900">{formatDuration(s.durationMins)}</span>
+                    {s.distanceKm && <span className="text-xs text-gray-500">{s.distanceKm} km</span>}
+                    {s.avgSpeedKmh && <span className="text-xs text-gray-500">{s.avgSpeedKmh} km/h</span>}
+                    {s.calories && <span className="text-xs text-gray-500">{s.calories} kcal</span>}
+                    {s.avgHr && <span className="text-xs text-gray-500">avg {s.avgHr} bpm</span>}
+                    {s.maxHr && <span className="text-xs text-gray-500">max {s.maxHr} bpm</span>}
+                    {s.elevationGain && <span className="text-xs text-gray-500">↑{s.elevationGain} m</span>}
+                    {s.avgCadence && <span className="text-xs text-gray-500">{s.avgCadence} spm</span>}
+                  </div>
+                  {(s.aerobicEffect || s.anaerobicEffect || s.trainingLoad) && (
+                    <div className="flex gap-3 mt-1 flex-wrap">
+                      {s.aerobicEffect != null && <span className="text-xs text-blue-500">Aerobic {s.aerobicEffect.toFixed(1)}</span>}
+                      {s.anaerobicEffect != null && <span className="text-xs text-orange-500">Anaerobic {s.anaerobicEffect.toFixed(1)}</span>}
+                      {s.trainingLoad != null && <span className="text-xs text-purple-500">Load {Math.round(s.trainingLoad)}</span>}
+                      {s.avgRespirationRate != null && <span className="text-xs text-gray-400">{s.avgRespirationRate.toFixed(1)} brpm</span>}
+                    </div>
+                  )}
+                  {s.notes && <p className="text-xs text-gray-400 mt-0.5 truncate">{s.notes}</p>}
                 </div>
-                {s.notes && <p className="text-xs text-gray-400 mt-0.5">{s.notes}</p>}
+                <span className="text-xs text-gray-400 whitespace-nowrap">{formatDate(s.date)}</span>
+                {confirmDelete === s.id ? (
+                  <div className="flex gap-1">
+                    <button onClick={() => deleteSession(s.id)} className="text-xs text-red-600 hover:underline">Delete</button>
+                    <button onClick={() => setConfirmDelete(null)} className="text-xs text-gray-500 hover:underline">Cancel</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setConfirmDelete(s.id)} className="text-gray-300 hover:text-red-400 flex-shrink-0">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
-              <span className="text-xs text-gray-400 whitespace-nowrap">{formatDate(s.date)}</span>
-              {confirmDelete === s.id ? (
-                <div className="flex gap-1">
-                  <button onClick={() => deleteSession(s.id)} className="text-xs text-red-600 hover:underline">Delete</button>
-                  <button onClick={() => setConfirmDelete(null)} className="text-xs text-gray-500 hover:underline">Cancel</button>
-                </div>
-              ) : (
-                <button onClick={() => setConfirmDelete(s.id)} className="text-gray-300 hover:text-red-400 flex-shrink-0">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
             </div>
           ))}
         </div>

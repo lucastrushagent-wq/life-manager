@@ -1,6 +1,6 @@
 export type MetricCategory = 'body' | 'activity'
-export type BodyMetric = 'weight' | 'body_fat' | 'bmi' | 'muscle_mass' | 'hydration' | 'bone_mass'
-export type ActivityMetric = 'steps' | 'resting_hr' | 'sleep_hours' | 'active_minutes' | 'vo2_max' | 'stress' | 'sleep_deep_hours' | 'sleep_light_hours' | 'sleep_rem_hours' | 'sleep_respiration' | 'body_battery' | 'spo2'
+export type BodyMetric = 'weight' | 'body_fat' | 'bmi' | 'muscle_mass' | 'hydration' | 'bone_mass' | 'visceral_fat' | 'metabolic_age'
+export type ActivityMetric = 'steps' | 'resting_hr' | 'sleep_hours' | 'active_minutes' | 'vo2_max' | 'stress' | 'sleep_deep_hours' | 'sleep_light_hours' | 'sleep_rem_hours' | 'sleep_respiration' | 'body_battery' | 'spo2' | 'sleep_score' | 'sleep_awake_mins' | 'sleep_avg_hr' | 'hrv_7day'
 export type HealthMetric = BodyMetric | ActivityMetric
 
 export interface HealthMetricEntry {

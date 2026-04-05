@@ -269,7 +269,18 @@ if (!healthMetricCols.includes('source')) db.exec("ALTER TABLE healthMetrics ADD
 if (!healthMetricCols.includes('garminId')) db.exec("ALTER TABLE healthMetrics ADD COLUMN garminId TEXT")
 
 const sessionCols = (db.prepare("PRAGMA table_info(fitnessSessions)").all() as { name: string }[]).map(c => c.name)
-if (!sessionCols.includes('garminId')) db.exec("ALTER TABLE fitnessSessions ADD COLUMN garminId TEXT")
+if (!sessionCols.includes('garminId'))               db.exec("ALTER TABLE fitnessSessions ADD COLUMN garminId TEXT")
+if (!sessionCols.includes('elevationGain'))          db.exec("ALTER TABLE fitnessSessions ADD COLUMN elevationGain REAL")
+if (!sessionCols.includes('avgSpeedKmh'))            db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgSpeedKmh REAL")
+if (!sessionCols.includes('avgCadence'))             db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgCadence REAL")
+if (!sessionCols.includes('aerobicEffect'))          db.exec("ALTER TABLE fitnessSessions ADD COLUMN aerobicEffect REAL")
+if (!sessionCols.includes('anaerobicEffect'))        db.exec("ALTER TABLE fitnessSessions ADD COLUMN anaerobicEffect REAL")
+if (!sessionCols.includes('trainingLoad'))           db.exec("ALTER TABLE fitnessSessions ADD COLUMN trainingLoad REAL")
+if (!sessionCols.includes('avgRespirationRate'))     db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgRespirationRate REAL")
+if (!sessionCols.includes('lactateThresholdHr'))     db.exec("ALTER TABLE fitnessSessions ADD COLUMN lactateThresholdHr REAL")
+if (!sessionCols.includes('avgVerticalOscillation')) db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgVerticalOscillation REAL")
+if (!sessionCols.includes('avgGroundContactMs'))     db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgGroundContactMs REAL")
+if (!sessionCols.includes('avgStrideLength'))        db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgStrideLength REAL")
 
 // Seed default shopping stores if none exist
 const storeCount = (db.prepare("SELECT COUNT(*) as n FROM shoppingStores").get() as { n: number }).n

@@ -54,31 +54,77 @@ export async function syncGarminData(daysBack = 30): Promise<GarminSyncResult> {
         const actDate = new Date(a.startTimeLocal ?? a.startTimeGMT)
         if (actDate < startDate) continue
         const garminId = String(a.activityId)
-        const existing = db.prepare('SELECT id FROM fitnessSessions WHERE garminId = ?').get(garminId)
-        if (existing) continue
-
+        const ds = dateStr(actDate)
         const typeKey = a.activityType?.typeKey ?? a.activityType ?? 'other'
-        db.prepare(`
-          INSERT INTO fitnessSessions (id, date, type, durationMins, distanceKm, calories, avgHr, maxHr, notes, garminId, createdAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-          crypto.randomUUID(),
-          dateStr(actDate),
-          mapActivityType(typeKey),
-          Math.round((a.duration ?? 0) / 60),
-          a.distance ? Math.round((a.distance / 1000) * 100) / 100 : null,
-          a.calories ?? null,
-          a.averageHR ?? null,
-          a.maxHR ?? null,
-          a.activityName ?? null,
-          garminId,
-          new Date().toISOString()
-        )
-        result.activitiesAdded++
+
+        // Convert speed from m/s to km/h
+        const avgSpeedKmh = a.averageSpeed
+          ? Math.round(a.averageSpeed * 3.6 * 100) / 100
+          : null
+
+        const existing = db.prepare('SELECT id FROM fitnessSessions WHERE garminId = ?').get(garminId) as { id: string } | undefined
+
+        if (existing) {
+          // Update with any new fields we now collect
+          db.prepare(`
+            UPDATE fitnessSessions SET
+              elevationGain = ?, avgSpeedKmh = ?, avgCadence = ?,
+              aerobicEffect = ?, anaerobicEffect = ?, trainingLoad = ?,
+              avgRespirationRate = ?, lactateThresholdHr = ?,
+              avgVerticalOscillation = ?, avgGroundContactMs = ?, avgStrideLength = ?
+            WHERE garminId = ?
+          `).run(
+            a.elevationGain ?? null,
+            avgSpeedKmh,
+            a.averageBikingCadenceInRevPerMinute ?? a.averageRunningCadenceInStepsPerMinute ?? null,
+            a.aerobicTrainingEffect ?? null,
+            a.anaerobicTrainingEffect ?? null,
+            a.activityTrainingLoad ?? null,
+            a.avgRespirationRate ?? null,
+            a.lactateThresholdBpm ?? null,
+            a.avgVerticalOscillation ?? null,
+            a.avgGroundContactTime ?? null,
+            a.avgStrideLength ?? null,
+            garminId
+          )
+        } else {
+          db.prepare(`
+            INSERT INTO fitnessSessions (
+              id, date, type, durationMins, distanceKm, calories, avgHr, maxHr, notes, garminId,
+              elevationGain, avgSpeedKmh, avgCadence, aerobicEffect, anaerobicEffect, trainingLoad,
+              avgRespirationRate, lactateThresholdHr, avgVerticalOscillation, avgGroundContactMs, avgStrideLength,
+              createdAt
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(
+            crypto.randomUUID(),
+            ds,
+            mapActivityType(typeKey),
+            Math.round((a.duration ?? 0) / 60),
+            a.distance ? Math.round((a.distance / 1000) * 100) / 100 : null,
+            a.calories ?? null,
+            a.averageHR ?? null,
+            a.maxHR ?? null,
+            a.activityName ?? null,
+            garminId,
+            a.elevationGain ?? null,
+            avgSpeedKmh,
+            a.averageBikingCadenceInRevPerMinute ?? a.averageRunningCadenceInStepsPerMinute ?? null,
+            a.aerobicTrainingEffect ?? null,
+            a.anaerobicTrainingEffect ?? null,
+            a.activityTrainingLoad ?? null,
+            a.avgRespirationRate ?? null,
+            a.lactateThresholdBpm ?? null,
+            a.avgVerticalOscillation ?? null,
+            a.avgGroundContactTime ?? null,
+            a.avgStrideLength ?? null,
+            new Date().toISOString()
+          )
+          result.activitiesAdded++
+        }
 
         // VO2 max from activity
         if (a.vO2MaxValue) {
-          upsertMetric(dateStr(actDate), 'activity', 'vo2_max', a.vO2MaxValue, 'ml/kg/min', `garmin-vo2-${dateStr(actDate)}`)
+          upsertMetric(ds, 'activity', 'vo2_max', a.vO2MaxValue, 'ml/kg/min', `garmin-vo2-${ds}`)
           result.metricsAdded++
         }
       } catch (e: any) {
@@ -89,49 +135,93 @@ export async function syncGarminData(daysBack = 30): Promise<GarminSyncResult> {
     result.errors.push(`Activities sync: ${e.message}`)
   }
 
-  // ── Body composition (scale) ───────────────────────────────────────────────
+  // ── Body composition (scale) — getDailyWeightData for full data ───────────
   try {
-    const bodyComp = await (client as any).getBodyComposition(startDateStr, endDateStr)
-    const entries = bodyComp?.allMetrics?.metricsForDates ?? bodyComp?.dateWeightList ?? []
+    const weightData = await (client as any).getDailyWeightData(startDateStr, endDateStr) as any
+    const entries = weightData?.dateWeightList ?? weightData?.allMetrics?.metricsForDates ?? []
     for (const entry of entries) {
       try {
-        const date = entry.calendarDate ?? entry.date ?? (entry.dateTime ? dateStr(new Date(entry.dateTime)) : null)
+        const date = entry.calendarDate ?? entry.date
         if (!date) continue
-        const metrics = entry.metrics ?? entry
         const kgToLbs = (kg: number) => Math.round(kg * 2.20462 * 10) / 10
         const gToLbs = (g: number) => Math.round(g * 0.00220462 * 10) / 10
 
-        if (metrics.weight || entry.weight) {
-          const weightG = metrics.weight ?? entry.weight
-          upsertMetric(date, 'body', 'weight', kgToLbs(weightG / 1000), 'lbs', `garmin-weight-${date}`)
+        if (entry.weight) {
+          upsertMetric(date, 'body', 'weight', kgToLbs(entry.weight / 1000), 'lbs', `garmin-weight-${date}`)
           result.metricsAdded++
         }
-        if (metrics.bmi ?? entry.bmi) {
-          upsertMetric(date, 'body', 'bmi', metrics.bmi ?? entry.bmi, '', `garmin-bmi-${date}`)
+        if (entry.bmi) {
+          upsertMetric(date, 'body', 'bmi', entry.bmi, '', `garmin-bmi-${date}`)
           result.metricsAdded++
         }
-        if (metrics.bodyFatPercentage ?? entry.bodyFatPercentage) {
-          upsertMetric(date, 'body', 'body_fat', metrics.bodyFatPercentage ?? entry.bodyFatPercentage, '%', `garmin-bodyfat-${date}`)
+        if (entry.bodyFatPercentage) {
+          upsertMetric(date, 'body', 'body_fat', entry.bodyFatPercentage, '%', `garmin-bodyfat-${date}`)
           result.metricsAdded++
         }
-        if (metrics.muscleMass ?? entry.muscleMass) {
-          const massG = metrics.muscleMass ?? entry.muscleMass
-          upsertMetric(date, 'body', 'muscle_mass', gToLbs(massG), 'lbs', `garmin-muscle-${date}`)
+        if (entry.muscleMass) {
+          upsertMetric(date, 'body', 'muscle_mass', gToLbs(entry.muscleMass), 'lbs', `garmin-muscle-${date}`)
           result.metricsAdded++
         }
-        if (metrics.boneMass ?? entry.boneMass) {
-          const massG = metrics.boneMass ?? entry.boneMass
-          upsertMetric(date, 'body', 'bone_mass', gToLbs(massG), 'lbs', `garmin-bone-${date}`)
+        if (entry.boneMass) {
+          upsertMetric(date, 'body', 'bone_mass', gToLbs(entry.boneMass), 'lbs', `garmin-bone-${date}`)
           result.metricsAdded++
         }
-        if (metrics.hydrationPercentage ?? entry.hydrationPercentage) {
-          upsertMetric(date, 'body', 'hydration', metrics.hydrationPercentage ?? entry.hydrationPercentage, '%', `garmin-hydration-${date}`)
+        if (entry.bodyWater) {
+          upsertMetric(date, 'body', 'hydration', entry.bodyWater, '%', `garmin-hydration-${date}`)
           result.metricsAdded++
         }
-      } catch (e: any) { result.errors.push(`Body comp entry: ${e.message}`) }
+        if (entry.visceralFat) {
+          upsertMetric(date, 'body', 'visceral_fat', entry.visceralFat, '', `garmin-visceralfat-${date}`)
+          result.metricsAdded++
+        }
+        if (entry.metabolicAge) {
+          upsertMetric(date, 'body', 'metabolic_age', entry.metabolicAge, 'yrs', `garmin-metabolicage-${date}`)
+          result.metricsAdded++
+        }
+      } catch (e: any) { result.errors.push(`Weight entry: ${e.message}`) }
     }
   } catch (e: any) {
-    result.errors.push(`Body composition: ${e.message}`)
+    // Fall back to getBodyComposition
+    try {
+      const bodyComp = await (client as any).getBodyComposition(startDateStr, endDateStr)
+      const entries = bodyComp?.allMetrics?.metricsForDates ?? bodyComp?.dateWeightList ?? []
+      for (const entry of entries) {
+        try {
+          const date = entry.calendarDate ?? entry.date ?? (entry.dateTime ? dateStr(new Date(entry.dateTime)) : null)
+          if (!date) continue
+          const metrics = entry.metrics ?? entry
+          const kgToLbs = (kg: number) => Math.round(kg * 2.20462 * 10) / 10
+          const gToLbs = (g: number) => Math.round(g * 0.00220462 * 10) / 10
+
+          if (metrics.weight || entry.weight) {
+            upsertMetric(date, 'body', 'weight', kgToLbs((metrics.weight ?? entry.weight) / 1000), 'lbs', `garmin-weight-${date}`)
+            result.metricsAdded++
+          }
+          if (metrics.bmi ?? entry.bmi) {
+            upsertMetric(date, 'body', 'bmi', metrics.bmi ?? entry.bmi, '', `garmin-bmi-${date}`)
+            result.metricsAdded++
+          }
+          if (metrics.bodyFatPercentage ?? entry.bodyFatPercentage) {
+            upsertMetric(date, 'body', 'body_fat', metrics.bodyFatPercentage ?? entry.bodyFatPercentage, '%', `garmin-bodyfat-${date}`)
+            result.metricsAdded++
+          }
+          if (metrics.muscleMass ?? entry.muscleMass) {
+            upsertMetric(date, 'body', 'muscle_mass', gToLbs(metrics.muscleMass ?? entry.muscleMass), 'lbs', `garmin-muscle-${date}`)
+            result.metricsAdded++
+          }
+          if (metrics.boneMass ?? entry.boneMass) {
+            upsertMetric(date, 'body', 'bone_mass', gToLbs(metrics.boneMass ?? entry.boneMass), 'lbs', `garmin-bone-${date}`)
+            result.metricsAdded++
+          }
+          if (metrics.hydrationPercentage ?? entry.hydrationPercentage) {
+            upsertMetric(date, 'body', 'hydration', metrics.hydrationPercentage ?? entry.hydrationPercentage, '%', `garmin-hydration-${date}`)
+            result.metricsAdded++
+          }
+        } catch (e2: any) { result.errors.push(`Body comp entry: ${e2.message}`) }
+      }
+    } catch (e2: any) {
+      result.errors.push(`Body composition: ${e2.message}`)
+    }
   }
 
   // ── Daily health stats (iterate each day) ─────────────────────────────────
@@ -148,9 +238,9 @@ export async function syncGarminData(daysBack = 30): Promise<GarminSyncResult> {
       }
     } catch (_) {}
 
-    // Sleep
+    // Sleep — use getSleepData for full detail including HRV, score, body battery
     try {
-      const sleep = await (client as any).getSleep(d) as any
+      const sleep = await (client as any).getSleepData(ds) as any
       const dto = sleep?.dailySleepDTO ?? sleep
       if (dto?.sleepTimeSeconds) {
         upsertMetric(ds, 'activity', 'sleep_hours', Math.round(dto.sleepTimeSeconds / 360) / 10, 'hrs', `garmin-sleep-${ds}`)
@@ -168,8 +258,36 @@ export async function syncGarminData(daysBack = 30): Promise<GarminSyncResult> {
         upsertMetric(ds, 'activity', 'sleep_rem_hours', Math.round(dto.remSleepSeconds / 360) / 10, 'hrs', `garmin-sleep-rem-${ds}`)
         result.metricsAdded++
       }
-      if (dto?.averageRespirationValue ?? dto?.avgSleepRespirationValue) {
-        upsertMetric(ds, 'activity', 'sleep_respiration', dto.averageRespirationValue ?? dto.avgSleepRespirationValue, 'brpm', `garmin-respiration-${ds}`)
+      if (dto?.awakeSleepSeconds) {
+        upsertMetric(ds, 'activity', 'sleep_awake_mins', Math.round(dto.awakeSleepSeconds / 60), 'min', `garmin-sleep-awake-${ds}`)
+        result.metricsAdded++
+      }
+      const avgResp = dto?.averageRespirationValue ?? dto?.avgSleepRespirationValue
+      if (avgResp) {
+        upsertMetric(ds, 'activity', 'sleep_respiration', avgResp, 'brpm', `garmin-respiration-${ds}`)
+        result.metricsAdded++
+      }
+      // Sleep score
+      const sleepScore = dto?.sleepScores?.overall?.value ?? dto?.sleepScore
+      if (sleepScore) {
+        upsertMetric(ds, 'activity', 'sleep_score', sleepScore, '', `garmin-sleep-score-${ds}`)
+        result.metricsAdded++
+      }
+      // Sleep avg HR
+      if (dto?.avgSleepHR ?? dto?.averageHeartRate) {
+        upsertMetric(ds, 'activity', 'sleep_avg_hr', dto.avgSleepHR ?? dto.averageHeartRate, 'bpm', `garmin-sleep-hr-${ds}`)
+        result.metricsAdded++
+      }
+      // HRV 7-day average
+      const hrv7 = sleep?.hrvSummary?.lastNight5MinHigh ?? sleep?.hrvSummary?.weeklyAvg
+      if (hrv7) {
+        upsertMetric(ds, 'activity', 'hrv_7day', hrv7, 'ms', `garmin-hrv-${ds}`)
+        result.metricsAdded++
+      }
+      // Body battery from sleep data
+      const bbHigh = sleep?.bodyBatteryChange?.highestBodyBattery ?? sleep?.highestBodyBattery
+      if (bbHigh) {
+        upsertMetric(ds, 'activity', 'body_battery', bbHigh, '', `garmin-bb-${ds}`)
         result.metricsAdded++
       }
     } catch (_) {}
@@ -183,9 +301,19 @@ export async function syncGarminData(daysBack = 30): Promise<GarminSyncResult> {
         result.metricsAdded++
       }
     } catch (_) {}
+
+    // SpO2
+    try {
+      const spo2 = await (client as any).getSpO2Data(d) as any
+      const avgSpo2 = spo2?.averageSpO2 ?? spo2?.spO2SleepSummary?.averageSpO2
+      if (avgSpo2 && avgSpo2 > 0) {
+        upsertMetric(ds, 'activity', 'spo2', avgSpo2, '%', `garmin-spo2-${ds}`)
+        result.metricsAdded++
+      }
+    } catch (_) {}
   }
 
-  // Steps — use range query if available
+  // Steps — use range query
   try {
     const stepsData = await (client as any).getDailySteps(startDate, new Date()) as any[]
     if (Array.isArray(stepsData)) {
@@ -194,6 +322,12 @@ export async function syncGarminData(daysBack = 30): Promise<GarminSyncResult> {
         const steps = day.totalSteps ?? day.steps
         if (ds && steps) {
           upsertMetric(ds, 'activity', 'steps', steps, 'steps', `garmin-steps-${ds}`)
+          result.metricsAdded++
+        }
+        // Active minutes from steps data
+        const activeMins = day.activeMinutes ?? day.moderateIntensityMinutes
+        if (ds && activeMins) {
+          upsertMetric(ds, 'activity', 'active_minutes', activeMins, 'min', `garmin-active-${ds}`)
           result.metricsAdded++
         }
       }
@@ -217,7 +351,6 @@ export async function syncGarminData(daysBack = 30): Promise<GarminSyncResult> {
 }
 
 function upsertMetric(date: string, category: string, metric: string, value: number, unit: string, garminId: string) {
-  // Delete existing Garmin entry for this date+metric, then insert fresh
   db.prepare("DELETE FROM healthMetrics WHERE garminId = ?").run(garminId)
   db.prepare(`
     INSERT INTO healthMetrics (id, date, category, metric, value, unit, source, garminId, createdAt)

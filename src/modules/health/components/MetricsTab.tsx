@@ -10,24 +10,30 @@ const BODY_METRICS: { value: BodyMetricDef; label: string; unit: string }[] = [
   { value: 'muscle_mass', label: 'Muscle Mass', unit: 'lbs' },
   { value: 'hydration', label: 'Hydration', unit: '%' },
   { value: 'bone_mass', label: 'Bone Mass', unit: 'lbs' },
+  { value: 'visceral_fat', label: 'Visceral Fat', unit: '' },
+  { value: 'metabolic_age', label: 'Metabolic Age', unit: 'yrs' },
 ]
-type BodyMetricDef = 'weight' | 'body_fat' | 'bmi' | 'muscle_mass' | 'hydration' | 'bone_mass'
+type BodyMetricDef = 'weight' | 'body_fat' | 'bmi' | 'muscle_mass' | 'hydration' | 'bone_mass' | 'visceral_fat' | 'metabolic_age'
 
 const ACTIVITY_METRICS: { value: ActivityMetricDef; label: string; unit: string }[] = [
   { value: 'steps', label: 'Steps', unit: 'steps' },
   { value: 'resting_hr', label: 'Resting HR', unit: 'bpm' },
   { value: 'sleep_hours', label: 'Sleep', unit: 'hrs' },
+  { value: 'sleep_score', label: 'Sleep Score', unit: '' },
   { value: 'sleep_deep_hours', label: 'Deep Sleep', unit: 'hrs' },
   { value: 'sleep_light_hours', label: 'Light Sleep', unit: 'hrs' },
   { value: 'sleep_rem_hours', label: 'REM Sleep', unit: 'hrs' },
+  { value: 'sleep_awake_mins', label: 'Awake Time', unit: 'min' },
+  { value: 'sleep_avg_hr', label: 'Sleep Avg HR', unit: 'bpm' },
   { value: 'sleep_respiration', label: 'Sleep Respiration', unit: 'brpm' },
+  { value: 'hrv_7day', label: 'HRV (7-day avg)', unit: 'ms' },
   { value: 'active_minutes', label: 'Active Minutes', unit: 'min' },
   { value: 'vo2_max', label: 'VO2 Max', unit: 'ml/kg/min' },
   { value: 'stress', label: 'Stress Score', unit: '' },
   { value: 'body_battery', label: 'Body Battery', unit: '' },
   { value: 'spo2', label: 'SpO2', unit: '%' },
 ]
-type ActivityMetricDef = 'steps' | 'resting_hr' | 'sleep_hours' | 'sleep_deep_hours' | 'sleep_light_hours' | 'sleep_rem_hours' | 'sleep_respiration' | 'active_minutes' | 'vo2_max' | 'stress' | 'body_battery' | 'spo2'
+type ActivityMetricDef = 'steps' | 'resting_hr' | 'sleep_hours' | 'sleep_score' | 'sleep_deep_hours' | 'sleep_light_hours' | 'sleep_rem_hours' | 'sleep_awake_mins' | 'sleep_avg_hr' | 'sleep_respiration' | 'hrv_7day' | 'active_minutes' | 'vo2_max' | 'stress' | 'body_battery' | 'spo2'
 
 function todayStr() {
   const d = new Date()

@@ -21,6 +21,18 @@ export interface WorkoutSession {
   avgHr?: number
   maxHr?: number
   notes?: string
+  garminId?: string
+  elevationGain?: number
+  avgSpeedKmh?: number
+  avgCadence?: number
+  aerobicEffect?: number
+  anaerobicEffect?: number
+  trainingLoad?: number
+  avgRespirationRate?: number
+  lactateThresholdHr?: number
+  avgVerticalOscillation?: number
+  avgGroundContactMs?: number
+  avgStrideLength?: number
   createdAt: string
 }
 
