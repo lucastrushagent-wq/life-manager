@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Trash2, Plus, Check, Star, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
+import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useAesthetics, daysUntilDue } from '../hooks/useAesthetics'
 import type {
   AestheticProduct, GroomingRoutine, GroomingSchedule,
@@ -889,6 +890,8 @@ export function AestheticsModule() {
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Aesthetics</h1>
         <p className="text-sm text-gray-500">Grooming routines, wardrobe, and style inspiration.</p>
       </div>
+
+      <PhilosophyBox moduleId="aesthetics" />
 
       {/* Sub-navigation */}
       <div className="flex gap-1 mb-8 border-b border-gray-200">

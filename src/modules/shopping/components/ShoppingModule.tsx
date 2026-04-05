@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Plus, Trash2, X, Check, RefreshCw, ExternalLink, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
+import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useShoppingStore } from '../store'
 import type { ShoppingFrequency, ShoppingItem } from '../types'
 import type { CreateItemData } from '../service'
@@ -141,6 +142,8 @@ export function ShoppingModule() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       <h1 className="text-xl font-semibold text-gray-900 mb-6">Shopping</h1>
+
+      <PhilosophyBox moduleId="shopping" />
 
       {/* Store tabs */}
       <div className="flex items-center gap-1 mb-6 flex-wrap">

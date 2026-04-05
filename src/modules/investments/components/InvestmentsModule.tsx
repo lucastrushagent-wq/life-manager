@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
+import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useInvestmentsStore } from '../store'
 import type { AssetClass, Holding } from '../types'
 
@@ -192,6 +193,8 @@ export function InvestmentsModule() {
           </button>
         )}
       </div>
+
+      <PhilosophyBox moduleId="investments" />
 
       {/* Summary cards */}
       {holdings.length > 0 && (

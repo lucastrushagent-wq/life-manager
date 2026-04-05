@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
+import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useFinanceStore } from '../store'
 import type { AccountCategory, AccountType, FinanceAccount } from '../types'
 import { NetWorthChart } from './NetWorthChart'
@@ -212,6 +213,8 @@ export function FinanceModule() {
           </button>
         )}
       </div>
+
+      <PhilosophyBox moduleId="finance" />
 
       {/* Inner tabs */}
       <div className="flex gap-1 mb-6 border-b border-gray-200">

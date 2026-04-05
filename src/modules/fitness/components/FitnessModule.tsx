@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { SessionsTab } from './SessionsTab'
 import { StrengthTab } from './StrengthTab'
 import { RecordsTab } from './RecordsTab'
@@ -25,6 +26,8 @@ export function FitnessModule() {
         <h1 className="text-xl font-semibold text-gray-900">Fitness</h1>
         <GarminSyncButton onSyncComplete={load} />
       </div>
+
+      <PhilosophyBox moduleId="fitness" />
 
       <div className="flex gap-1 mb-6 border-b border-gray-200">
         {TABS.map(tab => (

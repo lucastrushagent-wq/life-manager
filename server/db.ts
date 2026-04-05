@@ -330,6 +330,12 @@ db.exec(`
     notes     TEXT,
     createdAt TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS philosophies (
+    moduleId  TEXT PRIMARY KEY,
+    content   TEXT NOT NULL DEFAULT '',
+    updatedAt TEXT NOT NULL
+  );
 `)
 
 // Migrations — safe to run on existing databases (must run after CREATE TABLE)

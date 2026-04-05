@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { Plus, Upload } from 'lucide-react'
+import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useCrm } from '../hooks/useCrm'
 import { crmService } from '../service'
 import { AddContactForm } from './AddContactForm'
@@ -98,6 +99,8 @@ export function CrmModule() {
           </div>
         )}
       </div>
+
+      <PhilosophyBox moduleId="crm" />
 
       {importResult && (
         <div className={`mb-4 px-4 py-3 rounded-lg text-sm flex items-center justify-between ${importResult.created === -1 ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
