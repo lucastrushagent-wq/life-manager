@@ -9,6 +9,7 @@ import { healthTools } from '../modules/health/tools'
 import { fitnessTools } from '../modules/fitness/tools'
 import { visionTools } from '../modules/vision/tools'
 import { aestheticsTools } from '../modules/aesthetics/tools'
+import { homeTools } from '../modules/home/tools'
 
 export interface McpTool {
   name: string
@@ -28,4 +29,5 @@ export const mcpTools: McpTool[] = [
   ...fitnessTools,
   ...visionTools,
   ...aestheticsTools,
+  ...homeTools,
 ]
