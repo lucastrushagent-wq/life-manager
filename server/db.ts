@@ -243,6 +243,20 @@ db.exec(`
     error            TEXT
   );
 
+  CREATE TABLE IF NOT EXISTS investmentHoldings (
+    id           TEXT PRIMARY KEY,
+    ticker       TEXT NOT NULL,
+    name         TEXT NOT NULL,
+    assetClass   TEXT NOT NULL DEFAULT 'other',
+    account      TEXT NOT NULL DEFAULT '',
+    shares       REAL NOT NULL,
+    avgCost      REAL NOT NULL,
+    currentPrice REAL NOT NULL,
+    lastUpdated  TEXT NOT NULL,
+    notes        TEXT,
+    createdAt    TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS expenses (
     id          TEXT PRIMARY KEY,
     date        TEXT NOT NULL,
