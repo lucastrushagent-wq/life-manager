@@ -267,6 +267,69 @@ db.exec(`
     notes       TEXT,
     importedAt  TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS aestheticProducts (
+    id        TEXT PRIMARY KEY,
+    name      TEXT NOT NULL,
+    brand     TEXT,
+    category  TEXT NOT NULL DEFAULT 'other',
+    status    TEXT NOT NULL DEFAULT 'active',
+    rating    INTEGER,
+    notes     TEXT,
+    url       TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS groomingRoutines (
+    id         TEXT PRIMARY KEY,
+    name       TEXT NOT NULL,
+    timeOfDay  TEXT NOT NULL DEFAULT 'morning',
+    steps      TEXT NOT NULL DEFAULT '[]',
+    notes      TEXT,
+    createdAt  TEXT NOT NULL,
+    updatedAt  TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS groomingSchedules (
+    id            TEXT PRIMARY KEY,
+    name          TEXT NOT NULL,
+    frequencyDays INTEGER NOT NULL,
+    lastDoneAt    TEXT,
+    notes         TEXT,
+    createdAt     TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS wardrobeItems (
+    id        TEXT PRIMARY KEY,
+    name      TEXT NOT NULL,
+    category  TEXT NOT NULL DEFAULT 'other',
+    color     TEXT,
+    brand     TEXT,
+    status    TEXT NOT NULL DEFAULT 'owned',
+    notes     TEXT,
+    imageUrl  TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS outfitIdeas (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    description TEXT,
+    occasion    TEXT,
+    season      TEXT NOT NULL DEFAULT 'all',
+    notes       TEXT,
+    createdAt   TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS inspirationItems (
+    id        TEXT PRIMARY KEY,
+    title     TEXT NOT NULL,
+    imageUrl  TEXT,
+    sourceUrl TEXT,
+    category  TEXT NOT NULL DEFAULT 'general',
+    notes     TEXT,
+    createdAt TEXT NOT NULL
+  );
 `)
 
 // Migrations — safe to run on existing databases (must run after CREATE TABLE)
