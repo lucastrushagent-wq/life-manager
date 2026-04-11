@@ -15,7 +15,7 @@ export function startCronJobs() {
   cron.schedule(schedule, runMorningEmail, { timezone: process.env.TZ ?? 'America/New_York' })
   console.log(`[cron] Morning email scheduled: ${schedule}`)
 
-  cron.schedule('0 7 * * *', async () => {
+  cron.schedule('30 5 * * *', async () => {
     if (!process.env.GARMIN_EMAIL || !process.env.GARMIN_PASSWORD) return
     console.log('[cron] Syncing Garmin...')
     try {
@@ -25,7 +25,7 @@ export function startCronJobs() {
       console.error('[cron] Garmin sync failed:', e.message)
     }
   }, { timezone: process.env.TZ ?? 'America/New_York' })
-  console.log('[cron] Garmin sync scheduled: 0 7 * * *')
+  console.log('[cron] Garmin sync scheduled: 30 5 * * *')
 }
 
 async function runMorningEmail() {
