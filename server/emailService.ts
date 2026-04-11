@@ -26,20 +26,31 @@ function todayDateStr(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
+// Atomically claim the send slot for today. Returns true only if this caller
+// is the first to claim it — preventing duplicate sends when two cron firings
+// race (e.g. two processes or a hot-reload that registered the job twice).
+function claimSend(): boolean {
+  const result = db.prepare('INSERT OR IGNORE INTO emailLog (id, sentDate, sentAt) VALUES (?, ?, ?)')
+    .run(crypto.randomUUID(), todayDateStr(), new Date().toISOString())
+  return result.changes > 0
+}
+
 function alreadySentToday(): boolean {
   const row = db.prepare('SELECT id FROM emailLog WHERE sentDate = ?').get(todayDateStr())
   return !!row
 }
 
-function recordSent() {
-  db.prepare('INSERT OR IGNORE INTO emailLog (id, sentDate, sentAt) VALUES (?, ?, ?)')
-    .run(crypto.randomUUID(), todayDateStr(), new Date().toISOString())
-}
-
 export async function sendMorningEmail(force = false): Promise<{ ok: boolean; skipped?: boolean; error?: string }> {
-  if (!force && alreadySentToday()) {
-    console.log('[email] Already sent today, skipping.')
-    return { ok: true, skipped: true }
+  if (force) {
+    if (alreadySentToday()) {
+      console.log('[email] Already sent today, skipping.')
+      return { ok: true, skipped: true }
+    }
+  } else {
+    if (!claimSend()) {
+      console.log('[email] Already sent today, skipping.')
+      return { ok: true, skipped: true }
+    }
   }
 
   const config = getConfig()
@@ -61,7 +72,6 @@ export async function sendMorningEmail(force = false): Promise<{ ok: boolean; sk
       subject,
       text,
     })
-    recordSent()
     return { ok: true }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
