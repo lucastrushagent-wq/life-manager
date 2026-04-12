@@ -9,7 +9,7 @@ export function Layout() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <nav className="flex border-b border-gray-200 bg-white shadow-sm">
+      <nav className="flex border-b border-gray-200 bg-white shadow-sm overflow-x-auto scrollbar-none">
         {tabs.map(tab => {
           const Icon = tab.icon
           const isActive = tab.id === activeId

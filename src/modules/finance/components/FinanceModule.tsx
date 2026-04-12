@@ -273,7 +273,7 @@ export function FinanceModule() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="max-w-5xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-gray-900">Finance</h1>
         {activeTab === 'net_worth' && !showForm && (

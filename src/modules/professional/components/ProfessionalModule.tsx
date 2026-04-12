@@ -508,7 +508,7 @@ export function ProfessionalModule() {
   useEffect(() => { load() }, [load])
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="max-w-7xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-gray-900">Professional</h1>
       </div>
