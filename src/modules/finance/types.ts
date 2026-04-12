@@ -29,6 +29,7 @@ export interface FinanceAccount {
   value: number
   lastUpdated: string
   notes?: string
+  excluded: boolean
   createdAt: string
 }
 

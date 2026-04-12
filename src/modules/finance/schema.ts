@@ -13,6 +13,7 @@ export const FinanceAccountSchema = z.object({
   value: z.number().min(0, 'Value must be non-negative'),
   lastUpdated: z.string(),
   notes: z.string().optional(),
+  excluded: z.boolean(),
   createdAt: z.string(),
 }) satisfies z.ZodType<FinanceAccount>
 

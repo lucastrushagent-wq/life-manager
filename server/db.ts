@@ -359,6 +359,10 @@ if (!todoCols.includes('recurringTodoId')) db.exec("ALTER TABLE todos ADD COLUMN
 if (!todoCols.includes('completedAt')) db.exec("ALTER TABLE todos ADD COLUMN completedAt TEXT")
 if (!todoCols.includes('deletedAt')) db.exec("ALTER TABLE todos ADD COLUMN deletedAt TEXT")
 
+// Finance account migrations
+const financeAccountCols = (db.prepare("PRAGMA table_info(financeAccounts)").all() as { name: string }[]).map(c => c.name)
+if (!financeAccountCols.includes('excluded')) db.exec("ALTER TABLE financeAccounts ADD COLUMN excluded INTEGER NOT NULL DEFAULT 0")
+
 // Shopping item migrations
 const shoppingItemCols = (db.prepare("PRAGMA table_info(shoppingItems)").all() as { name: string }[]).map(c => c.name)
 if (!shoppingItemCols.includes('recurring')) db.exec("ALTER TABLE shoppingItems ADD COLUMN recurring INTEGER NOT NULL DEFAULT 0")

@@ -11,6 +11,7 @@ interface AccountRow {
   value: number
   lastUpdated: string
   notes: string | null
+  excluded: number
   createdAt: string
 }
 
@@ -32,12 +33,14 @@ function toAccount(row: AccountRow) {
     value: row.value,
     lastUpdated: row.lastUpdated,
     notes: row.notes ?? undefined,
+    excluded: row.excluded === 1,
     createdAt: row.createdAt,
   }
 }
 
 function saveSnapshot() {
-  const accounts = db.prepare('SELECT * FROM financeAccounts').all() as AccountRow[]
+  // Snapshots use only included accounts so the chart reflects the same view as the UI totals
+  const accounts = (db.prepare('SELECT * FROM financeAccounts WHERE excluded=0').all() as AccountRow[])
   const totalAssets = accounts.filter(a => a.type === 'asset').reduce((s, a) => s + a.value, 0)
   const totalLiabilities = accounts.filter(a => a.type === 'liability').reduce((s, a) => s + a.value, 0)
   const netWorth = totalAssets - totalLiabilities
@@ -67,8 +70,8 @@ router.post('/', (req, res) => {
   const id = crypto.randomUUID()
   const createdAt = new Date().toISOString()
   db.prepare(
-    'INSERT INTO financeAccounts (id, name, category, type, value, lastUpdated, notes, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(id, name, category, type, value, lastUpdated, notes ?? null, createdAt)
+    'INSERT INTO financeAccounts (id, name, category, type, value, lastUpdated, notes, excluded, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(id, name, category, type, value, lastUpdated, notes ?? null, 0, createdAt)
   saveSnapshot()
   const row = db.prepare('SELECT * FROM financeAccounts WHERE id = ?').get(id) as AccountRow
   res.status(201).json(toAccount(row))
@@ -78,9 +81,9 @@ router.put('/:id', (req, res) => {
   const { id } = req.params
   const row = db.prepare('SELECT * FROM financeAccounts WHERE id = ?').get(id) as AccountRow | undefined
   if (!row) return res.status(404).json({ error: 'Not found' })
-  const { name, category, type, value, lastUpdated, notes } = req.body
+  const { name, category, type, value, lastUpdated, notes, excluded } = req.body
   db.prepare(
-    'UPDATE financeAccounts SET name=?, category=?, type=?, value=?, lastUpdated=?, notes=? WHERE id=?'
+    'UPDATE financeAccounts SET name=?, category=?, type=?, value=?, lastUpdated=?, notes=?, excluded=? WHERE id=?'
   ).run(
     name ?? row.name,
     category ?? row.category,
@@ -88,6 +91,7 @@ router.put('/:id', (req, res) => {
     value ?? row.value,
     lastUpdated ?? row.lastUpdated,
     notes !== undefined ? (notes ?? null) : row.notes,
+    excluded !== undefined ? (excluded ? 1 : 0) : row.excluded,
     id
   )
   saveSnapshot()

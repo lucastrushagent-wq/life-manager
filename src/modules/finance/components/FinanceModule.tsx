@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign, Target, Check } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign, Target, Check, EyeOff, Eye } from 'lucide-react'
 import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useFinanceStore } from '../store'
 import type { AccountCategory, AccountType, FinanceAccount, NetWorthTarget } from '../types'
@@ -109,9 +109,11 @@ export function FinanceModule() {
 
   useEffect(() => { load() }, [load])
 
-  const totalAssets = accounts.filter(a => a.type === 'asset').reduce((s, a) => s + a.value, 0)
-  const totalLiabilities = accounts.filter(a => a.type === 'liability').reduce((s, a) => s + a.value, 0)
+  const included = accounts.filter(a => !a.excluded)
+  const totalAssets = included.filter(a => a.type === 'asset').reduce((s, a) => s + a.value, 0)
+  const totalLiabilities = included.filter(a => a.type === 'liability').reduce((s, a) => s + a.value, 0)
   const netWorth = totalAssets - totalLiabilities
+  const excludedCount = accounts.filter(a => a.excluded).length
 
   function startAdd() {
     setFormState(DEFAULT_FORM)
@@ -203,51 +205,68 @@ export function FinanceModule() {
       <div>
         <h2 className={`text-xs font-semibold uppercase tracking-wide mb-3 ${colorClass}`}>{title}</h2>
         <div className="flex flex-col gap-4">
-          {grouped.map(({ cat, items }) => (
-            <div key={cat} className="rounded-lg border border-gray-200 overflow-hidden">
-              <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">{CATEGORY_LABELS[cat]}</span>
-                <span className="text-sm font-semibold text-gray-800">
-                  {formatCurrency(items.reduce((s, a) => s + a.value, 0))}
-                </span>
-              </div>
-              {items.map((account, i) => (
-                <div
-                  key={account.id}
-                  className={`flex items-center justify-between px-4 py-3 bg-white text-sm ${i < items.length - 1 ? 'border-b border-gray-100' : ''}`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <span className="font-medium text-gray-800">{account.name}</span>
-                    {account.notes && <span className="ml-2 text-xs text-gray-400">{account.notes}</span>}
-                    <div className="text-xs text-gray-400 mt-0.5">
-                      Updated {new Date(account.lastUpdated + 'T00:00:00').toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 ml-4">
-                    <span className="font-semibold text-gray-800 whitespace-nowrap">{formatCurrency(account.value)}</span>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => startEdit(account)} className="text-gray-300 hover:text-blue-400 transition-colors">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      {confirmDelete === account.id ? (
-                        <span className="flex items-center gap-1 text-xs">
-                          <button
-                            onClick={() => { remove(account.id); setConfirmDelete(null) }}
-                            className="text-red-500 hover:text-red-700 font-medium"
-                          >Yes</button>
-                          <button onClick={() => setConfirmDelete(null)} className="text-gray-400 hover:text-gray-600">No</button>
-                        </span>
-                      ) : (
-                        <button onClick={() => setConfirmDelete(account.id)} className="text-gray-300 hover:text-red-400 transition-colors">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
+          {grouped.map(({ cat, items }) => {
+            const includedTotal = items.filter(a => !a.excluded).reduce((s, a) => s + a.value, 0)
+            const excludedTotal = items.filter(a => a.excluded).reduce((s, a) => s + a.value, 0)
+            return (
+              <div key={cat} className="rounded-lg border border-gray-200 overflow-hidden">
+                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">{CATEGORY_LABELS[cat]}</span>
+                  <div className="text-right">
+                    <span className="text-sm font-semibold text-gray-800">{formatCurrency(includedTotal)}</span>
+                    {excludedTotal > 0 && (
+                      <span className="ml-2 text-xs text-gray-400 line-through">{formatCurrency(excludedTotal)}</span>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          ))}
+                {items.map((account, i) => (
+                  <div
+                    key={account.id}
+                    className={`flex items-center justify-between px-4 py-3 bg-white text-sm ${i < items.length - 1 ? 'border-b border-gray-100' : ''} ${account.excluded ? 'opacity-50' : ''}`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <span className={`font-medium ${account.excluded ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{account.name}</span>
+                      {account.excluded && <span className="ml-2 text-xs text-amber-500 font-medium no-underline" style={{ textDecoration: 'none' }}>excluded</span>}
+                      {!account.excluded && account.notes && <span className="ml-2 text-xs text-gray-400">{account.notes}</span>}
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        Updated {new Date(account.lastUpdated + 'T00:00:00').toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 ml-4">
+                      <span className={`font-semibold whitespace-nowrap ${account.excluded ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                        {formatCurrency(account.value)}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => update(account.id, { excluded: !account.excluded })}
+                          title={account.excluded ? 'Include in totals' : 'Exclude from totals'}
+                          className={`transition-colors ${account.excluded ? 'text-amber-400 hover:text-amber-600' : 'text-gray-300 hover:text-amber-400'}`}
+                        >
+                          {account.excluded ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                        <button onClick={() => startEdit(account)} className="text-gray-300 hover:text-blue-400 transition-colors">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        {confirmDelete === account.id ? (
+                          <span className="flex items-center gap-1 text-xs">
+                            <button
+                              onClick={() => { remove(account.id); setConfirmDelete(null) }}
+                              className="text-red-500 hover:text-red-700 font-medium"
+                            >Yes</button>
+                            <button onClick={() => setConfirmDelete(null)} className="text-gray-400 hover:text-gray-600">No</button>
+                          </span>
+                        ) : (
+                          <button onClick={() => setConfirmDelete(account.id)} className="text-gray-300 hover:text-red-400 transition-colors">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          })}
         </div>
       </div>
     )
@@ -315,6 +334,12 @@ export function FinanceModule() {
           </div>
         </div>
       </div>
+
+      {excludedCount > 0 && (
+        <p className="text-xs text-amber-600 mb-6 -mt-2">
+          {excludedCount} account{excludedCount !== 1 ? 's' : ''} excluded from totals
+        </p>
+      )}
 
       {/* Chart */}
       {snapshots.length > 0 && (
