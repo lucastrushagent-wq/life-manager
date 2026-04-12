@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useCrmStore } from '../store'
 import type { Contact } from '../types'
 
-export type CrmSortField = 'name' | 'company' | 'lastContactedAt' | 'nextFollowUp'
+export type CrmSortField = 'name' | 'company' | 'lastContactedAt' | 'nextFollowUp' | 'followUpDays'
 export type CrmSortDir = 'asc' | 'desc'
 
 function getNextFollowUp(contact: Contact): Date | null {
@@ -28,6 +28,11 @@ function sortContacts(contacts: Contact[], field: CrmSortField, dir: CrmSortDir)
       const aNext = getNextFollowUp(a)?.getTime() ?? Infinity
       const bNext = getNextFollowUp(b)?.getTime() ?? Infinity
       result = aNext - bNext
+    } else if (field === 'followUpDays') {
+      // lower days = higher priority; contacts with no reminder go last
+      const aD = a.followUpDays ?? Infinity
+      const bD = b.followUpDays ?? Infinity
+      result = aD - bD
     }
     return dir === 'asc' ? result : -result
   })

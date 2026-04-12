@@ -32,6 +32,18 @@ function SortHeader({ label, field, sortField, sortDir, onToggleSort }: {
   )
 }
 
+function formatFrequency(days: number | undefined): string {
+  if (!days) return '—'
+  if (days === 1) return 'Daily'
+  if (days === 7) return 'Weekly'
+  if (days === 14) return 'Fortnightly'
+  if (days === 30) return 'Monthly'
+  if (days === 90) return 'Quarterly'
+  if (days === 180) return '6-monthly'
+  if (days === 365) return 'Yearly'
+  return `Every ${days}d`
+}
+
 function daysAgo(dateStr: string): string {
   const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24))
   if (days === 0) return 'Today'
@@ -68,6 +80,9 @@ export function ContactTable({ contacts, sortField, sortDir, onToggleSort, onSel
             </th>
             <th className="px-4 py-3 text-left font-medium text-gray-600">Relationship</th>
             <th className="px-4 py-3 text-left">
+              <SortHeader label="Reminder" field="followUpDays" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
+            </th>
+            <th className="px-4 py-3 text-left">
               <SortHeader label="Last Contact" field="lastContactedAt" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
             </th>
             <th className="px-4 py-3 text-left">
@@ -96,6 +111,15 @@ export function ContactTable({ contacts, sortField, sortDir, onToggleSort, onSel
                       <span key={r} className="text-xs bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full">{r}</span>
                     ))}
                   </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <span className={contact.followUpDays
+                    ? contact.followUpDays <= 7 ? 'text-purple-600 font-medium'
+                    : contact.followUpDays <= 30 ? 'text-blue-600'
+                    : 'text-gray-500'
+                    : 'text-gray-300'}>
+                    {formatFrequency(contact.followUpDays)}
+                  </span>
                 </td>
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                   {contact.lastContactedAt
