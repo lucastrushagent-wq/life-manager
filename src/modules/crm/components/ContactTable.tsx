@@ -39,7 +39,7 @@ function formatFrequency(days: number | undefined): string {
   if (days === 14) return 'Fortnightly'
   if (days === 30) return 'Monthly'
   if (days === 90) return 'Quarterly'
-  if (days === 180) return '6-monthly'
+  if (days === 182) return 'Half-yearly'
   if (days === 365) return 'Yearly'
   return `Every ${days}d`
 }
