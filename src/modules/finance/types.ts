@@ -71,5 +71,6 @@ export interface NetWorthTarget {
   targetAmount: number
   targetDate?: string
   notes?: string
+  showOnChart: boolean
   createdAt: string
 }

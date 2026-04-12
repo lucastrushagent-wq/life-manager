@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign, Target, Check, EyeOff, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign, Target, Check, EyeOff, Eye, LineChart } from 'lucide-react'
 import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useFinanceStore } from '../store'
 import type { AccountCategory, AccountType, FinanceAccount, NetWorthTarget } from '../types'
@@ -345,7 +345,7 @@ export function FinanceModule() {
       {snapshots.length > 0 && (
         <div className="mb-8 rounded-xl border border-gray-200 bg-white px-5 py-4">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-4">History</h2>
-          <NetWorthChart snapshots={snapshots} />
+          <NetWorthChart snapshots={snapshots} targets={targets.filter(t => t.showOnChart)} />
         </div>
       )}
 
@@ -452,6 +452,13 @@ export function FinanceModule() {
                       {t.notes && <p className="text-xs text-gray-400 mt-0.5">{t.notes}</p>}
                     </div>
                     <div className="flex items-center gap-2 ml-4 shrink-0">
+                      <button
+                        onClick={() => updateTarget(t.id, { showOnChart: !t.showOnChart })}
+                        title={t.showOnChart ? 'Remove from chart' : 'Show on chart'}
+                        className={`transition-colors ${t.showOnChart ? 'text-purple-500 hover:text-purple-700' : 'text-gray-300 hover:text-purple-400'}`}
+                      >
+                        <LineChart className="w-3.5 h-3.5" />
+                      </button>
                       <button onClick={() => startEditTarget(t)} className="text-gray-300 hover:text-blue-400 transition-colors">
                         <Pencil className="w-3.5 h-3.5" />
                       </button>

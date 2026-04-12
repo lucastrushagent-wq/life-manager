@@ -27,6 +27,7 @@ export const NetWorthTargetSchema = z.object({
   targetAmount: z.number(),
   targetDate: z.string().optional(),
   notes: z.string().optional(),
+  showOnChart: z.boolean(),
   createdAt: z.string(),
 }) satisfies z.ZodType<NetWorthTarget>
 

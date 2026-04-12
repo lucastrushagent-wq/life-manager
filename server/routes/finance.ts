@@ -118,6 +118,7 @@ interface TargetRow {
   targetAmount: number
   targetDate: string | null
   notes: string | null
+  showOnChart: number
   createdAt: string
 }
 
@@ -128,6 +129,7 @@ function toTarget(r: TargetRow) {
     targetAmount: r.targetAmount,
     targetDate: r.targetDate ?? undefined,
     notes: r.notes ?? undefined,
+    showOnChart: r.showOnChart === 1,
     createdAt: r.createdAt,
   }
 }
@@ -143,7 +145,7 @@ router.post('/targets', (req, res) => {
   if (targetAmount === undefined || isNaN(Number(targetAmount))) return res.status(400).json({ error: 'targetAmount required' })
   const id = crypto.randomUUID()
   db.prepare(
-    'INSERT INTO netWorthTargets (id, label, targetAmount, targetDate, notes, createdAt) VALUES (?, ?, ?, ?, ?, ?)'
+    'INSERT INTO netWorthTargets (id, label, targetAmount, targetDate, notes, showOnChart, createdAt) VALUES (?, ?, ?, ?, ?, 0, ?)'
   ).run(id, label.trim(), Number(targetAmount), targetDate || null, notes?.trim() || null, new Date().toISOString())
   res.status(201).json(toTarget(db.prepare('SELECT * FROM netWorthTargets WHERE id=?').get(id) as TargetRow))
 })
@@ -151,14 +153,15 @@ router.post('/targets', (req, res) => {
 router.patch('/targets/:id', (req, res) => {
   const row = db.prepare('SELECT * FROM netWorthTargets WHERE id=?').get(req.params.id) as TargetRow | undefined
   if (!row) return res.status(404).json({ error: 'Not found' })
-  const { label, targetAmount, targetDate, notes } = req.body
+  const { label, targetAmount, targetDate, notes, showOnChart } = req.body
   db.prepare(
-    'UPDATE netWorthTargets SET label=?, targetAmount=?, targetDate=?, notes=? WHERE id=?'
+    'UPDATE netWorthTargets SET label=?, targetAmount=?, targetDate=?, notes=?, showOnChart=? WHERE id=?'
   ).run(
     label ?? row.label,
     targetAmount !== undefined ? Number(targetAmount) : row.targetAmount,
     targetDate !== undefined ? (targetDate || null) : row.targetDate,
     notes !== undefined ? (notes?.trim() || null) : row.notes,
+    showOnChart !== undefined ? (showOnChart ? 1 : 0) : row.showOnChart,
     req.params.id
   )
   res.json(toTarget(db.prepare('SELECT * FROM netWorthTargets WHERE id=?').get(req.params.id) as TargetRow))
