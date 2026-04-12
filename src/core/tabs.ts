@@ -11,6 +11,7 @@ import { visionTab } from '../modules/vision'
 import { investmentsTab } from '../modules/investments'
 import { aestheticsTab } from '../modules/aesthetics'
 import { homeTab } from '../modules/home'
+import { professionalTab } from '../modules/professional'
 
 export interface TabConfig {
   id: string
@@ -19,4 +20,4 @@ export interface TabConfig {
   component: ComponentType
 }
 
-export const tabs: TabConfig[] = [visionTab, todoTab, crmTab, financeTab, investmentsTab, healthTab, fitnessTab, shoppingTab, aestheticsTab, homeTab, lucieTab, tweedTab]
+export const tabs: TabConfig[] = [visionTab, todoTab, crmTab, financeTab, investmentsTab, healthTab, fitnessTab, shoppingTab, aestheticsTab, homeTab, professionalTab, lucieTab, tweedTab]

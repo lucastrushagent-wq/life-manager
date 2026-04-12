@@ -345,6 +345,58 @@ db.exec(`
     content   TEXT NOT NULL DEFAULT '',
     updatedAt TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS professionalResumes (
+    id           TEXT PRIMARY KEY,
+    originalName TEXT NOT NULL,
+    storedName   TEXT NOT NULL,
+    mimeType     TEXT NOT NULL,
+    uploadedAt   TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS performanceReviews (
+    id           TEXT PRIMARY KEY,
+    date         TEXT NOT NULL,
+    period       TEXT,
+    company      TEXT,
+    role         TEXT,
+    rating       TEXT,
+    summary      TEXT,
+    strengths    TEXT,
+    improvements TEXT,
+    notes        TEXT,
+    createdAt    TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS workHistory (
+    id          TEXT PRIMARY KEY,
+    company     TEXT NOT NULL,
+    title       TEXT NOT NULL,
+    startDate   TEXT NOT NULL,
+    endDate     TEXT,
+    location    TEXT,
+    description TEXT,
+    createdAt   TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS professionalSkills (
+    id        TEXT PRIMARY KEY,
+    name      TEXT NOT NULL,
+    category  TEXT NOT NULL DEFAULT 'technical',
+    level     TEXT,
+    notes     TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS professionalCerts (
+    id         TEXT PRIMARY KEY,
+    name       TEXT NOT NULL,
+    issuer     TEXT,
+    dateEarned TEXT,
+    expiryDate TEXT,
+    notes      TEXT,
+    createdAt  TEXT NOT NULL
+  );
 `)
 
 // Migrations — safe to run on existing databases (must run after CREATE TABLE)
