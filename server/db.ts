@@ -234,6 +234,15 @@ db.exec(`
     createdAt       TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS netWorthTargets (
+    id           TEXT PRIMARY KEY,
+    label        TEXT NOT NULL,
+    targetAmount REAL NOT NULL,
+    targetDate   TEXT,
+    notes        TEXT,
+    createdAt    TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS garminSyncLog (
     id               TEXT PRIMARY KEY,
     syncedAt         TEXT NOT NULL,

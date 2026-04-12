@@ -17,3 +17,16 @@ export const FinanceAccountSchema = z.object({
 }) satisfies z.ZodType<FinanceAccount>
 
 export const CreateFinanceAccountSchema = FinanceAccountSchema.omit({ id: true, createdAt: true })
+
+import type { NetWorthTarget } from './types'
+
+export const NetWorthTargetSchema = z.object({
+  id: z.string(),
+  label: z.string().min(1, 'Label is required'),
+  targetAmount: z.number(),
+  targetDate: z.string().optional(),
+  notes: z.string().optional(),
+  createdAt: z.string(),
+}) satisfies z.ZodType<NetWorthTarget>
+
+export const CreateNetWorthTargetSchema = NetWorthTargetSchema.omit({ id: true, createdAt: true })

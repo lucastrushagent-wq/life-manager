@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign, Target, Check } from 'lucide-react'
 import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useFinanceStore } from '../store'
-import type { AccountCategory, AccountType, FinanceAccount } from '../types'
+import type { AccountCategory, AccountType, FinanceAccount, NetWorthTarget } from '../types'
 import { NetWorthChart } from './NetWorthChart'
 import { ExpensesTab } from './ExpensesTab'
 
@@ -80,13 +80,32 @@ const DEFAULT_FORM: FormState = {
   notes: '',
 }
 
+interface TargetFormState {
+  label: string
+  targetAmount: string
+  targetDate: string
+  notes: string
+}
+
+const DEFAULT_TARGET_FORM: TargetFormState = { label: '', targetAmount: '', targetDate: '', notes: '' }
+
+function daysUntil(dateStr: string): number {
+  const target = new Date(dateStr + 'T00:00:00').getTime()
+  return Math.round((target - Date.now()) / 86_400_000)
+}
+
 export function FinanceModule() {
-  const { accounts, snapshots, load, create, update, remove } = useFinanceStore()
+  const { accounts, snapshots, targets, load, create, update, remove, createTarget, updateTarget, removeTarget } = useFinanceStore()
   const [activeTab, setActiveTab] = useState<InnerTab>('net_worth')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setFormState] = useState<FormState>(DEFAULT_FORM)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+
+  const [showTargetForm, setShowTargetForm] = useState(false)
+  const [editingTargetId, setEditingTargetId] = useState<string | null>(null)
+  const [targetForm, setTargetForm] = useState<TargetFormState>(DEFAULT_TARGET_FORM)
+  const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<string | null>(null)
 
   useEffect(() => { load() }, [load])
 
@@ -134,6 +153,41 @@ export function FinanceModule() {
 
   function patchForm(patch: Partial<FormState>) {
     setFormState(f => ({ ...f, ...patch }))
+  }
+
+  function startAddTarget() {
+    setTargetForm(DEFAULT_TARGET_FORM)
+    setEditingTargetId(null)
+    setShowTargetForm(true)
+  }
+
+  function startEditTarget(t: NetWorthTarget) {
+    setTargetForm({
+      label: t.label,
+      targetAmount: String(t.targetAmount),
+      targetDate: t.targetDate ?? '',
+      notes: t.notes ?? '',
+    })
+    setEditingTargetId(t.id)
+    setShowTargetForm(true)
+  }
+
+  async function handleTargetSubmit() {
+    const amount = parseFloat(targetForm.targetAmount)
+    if (!targetForm.label.trim() || isNaN(amount)) return
+    const payload = {
+      label: targetForm.label.trim(),
+      targetAmount: amount,
+      targetDate: targetForm.targetDate || undefined,
+      notes: targetForm.notes.trim() || undefined,
+    }
+    if (editingTargetId) {
+      await updateTarget(editingTargetId, payload)
+    } else {
+      await createTarget(payload)
+    }
+    setShowTargetForm(false)
+    setEditingTargetId(null)
   }
 
   const inputCls = 'text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 w-full'
@@ -269,6 +323,163 @@ export function FinanceModule() {
           <NetWorthChart snapshots={snapshots} />
         </div>
       )}
+
+      {/* Targets */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 flex items-center gap-1.5">
+            <Target className="w-3.5 h-3.5" /> Targets
+          </h2>
+          {!showTargetForm && (
+            <button
+              onClick={startAddTarget}
+              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add target
+            </button>
+          )}
+        </div>
+
+        {showTargetForm && (
+          <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-800">{editingTargetId ? 'Edit target' : 'Add target'}</h3>
+              <button onClick={() => { setShowTargetForm(false); setEditingTargetId(null) }} className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <input
+                  className={inputCls}
+                  placeholder='Label (e.g. "End of 2026", "Financial Freedom")'
+                  value={targetForm.label}
+                  onChange={e => setTargetForm(f => ({ ...f, label: e.target.value }))}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Target net worth ($)</label>
+                <input
+                  type="number"
+                  className={inputCls}
+                  placeholder="e.g. 500000"
+                  value={targetForm.targetAmount}
+                  min={0}
+                  step={1000}
+                  onChange={e => setTargetForm(f => ({ ...f, targetAmount: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Target date (optional)</label>
+                <input
+                  type="date"
+                  className={inputCls}
+                  value={targetForm.targetDate}
+                  onChange={e => setTargetForm(f => ({ ...f, targetDate: e.target.value }))}
+                />
+              </div>
+              <div className="col-span-2">
+                <input
+                  className={inputCls}
+                  placeholder="Notes (optional)"
+                  value={targetForm.notes}
+                  onChange={e => setTargetForm(f => ({ ...f, notes: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-3">
+              <button
+                onClick={() => { setShowTargetForm(false); setEditingTargetId(null) }}
+                className="text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700"
+              >Cancel</button>
+              <button
+                onClick={handleTargetSubmit}
+                disabled={!targetForm.label.trim() || !targetForm.targetAmount}
+                className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40"
+              >
+                {editingTargetId ? 'Save changes' : 'Add target'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {targets.length === 0 && !showTargetForm ? (
+          <p className="text-sm text-gray-400 text-center py-6 rounded-lg border border-dashed border-gray-200">
+            No targets yet. Add an end-of-year or financial freedom goal.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {targets.map(t => {
+              const pct = t.targetAmount > 0 ? Math.min(100, Math.max(0, (netWorth / t.targetAmount) * 100)) : 0
+              const achieved = netWorth >= t.targetAmount
+              const remaining = t.targetAmount - netWorth
+              const days = t.targetDate ? daysUntil(t.targetDate) : null
+
+              return (
+                <div key={t.id} className="rounded-xl border border-gray-200 bg-white px-5 py-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-800">{t.label}</span>
+                        {achieved && <span className="flex items-center gap-0.5 text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded-full px-2 py-0.5"><Check className="w-3 h-3" /> Achieved</span>}
+                      </div>
+                      {t.notes && <p className="text-xs text-gray-400 mt-0.5">{t.notes}</p>}
+                    </div>
+                    <div className="flex items-center gap-2 ml-4 shrink-0">
+                      <button onClick={() => startEditTarget(t)} className="text-gray-300 hover:text-blue-400 transition-colors">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      {confirmDeleteTarget === t.id ? (
+                        <span className="flex items-center gap-1 text-xs">
+                          <button onClick={() => { removeTarget(t.id); setConfirmDeleteTarget(null) }} className="text-red-500 hover:text-red-700 font-medium">Yes</button>
+                          <button onClick={() => setConfirmDeleteTarget(null)} className="text-gray-400 hover:text-gray-600">No</button>
+                        </span>
+                      ) : (
+                        <button onClick={() => setConfirmDeleteTarget(t.id)} className="text-gray-300 hover:text-red-400 transition-colors">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="w-full bg-gray-100 rounded-full h-2 mb-2 overflow-hidden">
+                    <div
+                      className={`h-2 rounded-full transition-all ${achieved ? 'bg-green-500' : 'bg-blue-500'}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+
+                  {/* Stats row */}
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center gap-3">
+                      <span>
+                        <span className={`font-semibold ${achieved ? 'text-green-600' : 'text-gray-800'}`}>
+                          {pct.toFixed(1)}%
+                        </span>
+                        {' '}of {formatCurrency(t.targetAmount)}
+                      </span>
+                      {!achieved && (
+                        <span className="text-gray-400">{formatCurrency(remaining)} to go</span>
+                      )}
+                    </div>
+                    {days !== null && (
+                      <span className={days < 0 ? 'text-red-400 font-medium' : days <= 30 ? 'text-orange-500 font-medium' : 'text-gray-400'}>
+                        {days < 0
+                          ? `${Math.abs(days)}d overdue`
+                          : days === 0
+                          ? 'Due today'
+                          : `${days}d remaining`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Add / Edit form */}
       {showForm && (

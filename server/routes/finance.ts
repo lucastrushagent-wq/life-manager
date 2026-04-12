@@ -107,4 +107,62 @@ router.get('/snapshots', (_req, res) => {
   res.json(rows)
 })
 
+// Targets
+interface TargetRow {
+  id: string
+  label: string
+  targetAmount: number
+  targetDate: string | null
+  notes: string | null
+  createdAt: string
+}
+
+function toTarget(r: TargetRow) {
+  return {
+    id: r.id,
+    label: r.label,
+    targetAmount: r.targetAmount,
+    targetDate: r.targetDate ?? undefined,
+    notes: r.notes ?? undefined,
+    createdAt: r.createdAt,
+  }
+}
+
+router.get('/targets', (_req, res) => {
+  const rows = db.prepare('SELECT * FROM netWorthTargets ORDER BY targetDate ASC, createdAt ASC').all() as TargetRow[]
+  res.json(rows.map(toTarget))
+})
+
+router.post('/targets', (req, res) => {
+  const { label, targetAmount, targetDate, notes } = req.body
+  if (!label?.trim()) return res.status(400).json({ error: 'Label required' })
+  if (targetAmount === undefined || isNaN(Number(targetAmount))) return res.status(400).json({ error: 'targetAmount required' })
+  const id = crypto.randomUUID()
+  db.prepare(
+    'INSERT INTO netWorthTargets (id, label, targetAmount, targetDate, notes, createdAt) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(id, label.trim(), Number(targetAmount), targetDate || null, notes?.trim() || null, new Date().toISOString())
+  res.status(201).json(toTarget(db.prepare('SELECT * FROM netWorthTargets WHERE id=?').get(id) as TargetRow))
+})
+
+router.patch('/targets/:id', (req, res) => {
+  const row = db.prepare('SELECT * FROM netWorthTargets WHERE id=?').get(req.params.id) as TargetRow | undefined
+  if (!row) return res.status(404).json({ error: 'Not found' })
+  const { label, targetAmount, targetDate, notes } = req.body
+  db.prepare(
+    'UPDATE netWorthTargets SET label=?, targetAmount=?, targetDate=?, notes=? WHERE id=?'
+  ).run(
+    label ?? row.label,
+    targetAmount !== undefined ? Number(targetAmount) : row.targetAmount,
+    targetDate !== undefined ? (targetDate || null) : row.targetDate,
+    notes !== undefined ? (notes?.trim() || null) : row.notes,
+    req.params.id
+  )
+  res.json(toTarget(db.prepare('SELECT * FROM netWorthTargets WHERE id=?').get(req.params.id) as TargetRow))
+})
+
+router.delete('/targets/:id', (req, res) => {
+  db.prepare('DELETE FROM netWorthTargets WHERE id=?').run(req.params.id)
+  res.status(204).end()
+})
+
 export default router

@@ -63,3 +63,12 @@ export interface NetWorthSnapshot {
   netWorth: number
   createdAt: string
 }
+
+export interface NetWorthTarget {
+  id: string
+  label: string
+  targetAmount: number
+  targetDate?: string
+  notes?: string
+  createdAt: string
+}
