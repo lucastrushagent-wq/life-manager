@@ -340,6 +340,23 @@ db.exec(`
     createdAt TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS calendarEvents (
+    id           TEXT PRIMARY KEY,
+    name         TEXT NOT NULL,
+    type         TEXT NOT NULL DEFAULT 'upcoming',
+    date         TEXT,
+    endDate      TEXT,
+    venue        TEXT,
+    location     TEXT,
+    category     TEXT NOT NULL DEFAULT 'other',
+    status       TEXT NOT NULL DEFAULT 'interested',
+    url          TEXT,
+    price        REAL,
+    alertEnabled INTEGER NOT NULL DEFAULT 0,
+    notes        TEXT,
+    createdAt    TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS philosophies (
     moduleId  TEXT PRIMARY KEY,
     content   TEXT NOT NULL DEFAULT '',

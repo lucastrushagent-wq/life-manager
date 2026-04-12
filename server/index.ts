@@ -18,6 +18,7 @@ import investmentsRouter from './routes/investments.js'
 import aestheticsRouter from './routes/aesthetics.js'
 import philosophyRouter from './routes/philosophy.js'
 import professionalRouter from './routes/professional.js'
+import eventsRouter from './routes/events.js'
 import { startCronJobs } from './cron.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -48,6 +49,7 @@ app.use('/api/investments', investmentsRouter)
 app.use('/api/aesthetics', aestheticsRouter)
 app.use('/api/philosophy', philosophyRouter)
 app.use('/api/professional', professionalRouter)
+app.use('/api/events', eventsRouter)
 
 if (isProd) {
   const distDir = path.join(__dirname, '..', 'dist')
