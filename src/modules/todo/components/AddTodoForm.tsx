@@ -12,8 +12,8 @@ interface Props {
 export function AddTodoForm({ onAdd, onCancel }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [dueDate, setDueDate] = useState('')
-  const [priority, setPriority] = useState<Priority>('medium')
+  const [dueDate, setDueDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [priority, setPriority] = useState<Priority>('high')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
 
