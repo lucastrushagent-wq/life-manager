@@ -1,15 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { tabs, TAB_GROUPS } from './tabs'
 import type { TabConfig } from './tabs'
 import { useNavigationStore } from './navigationStore'
-
-const COLLAPSE_KEY = 'sidebar-collapsed-groups'
-
-
-function saveCollapsed(s: Set<string>) {
-  localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...s]))
-}
 
 function SidebarItem({ tab, active, onClick }: { tab: TabConfig; active: boolean; onClick: () => void }) {
   const Icon = tab.icon
@@ -31,12 +24,7 @@ function SidebarItem({ tab, active, onClick }: { tab: TabConfig; active: boolean
 export function Layout() {
   const activeId = useNavigationStore(s => s.activeTabId)
   const setActiveId = useNavigationStore(s => s.setActiveTabId)
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
-    const stored = localStorage.getItem(COLLAPSE_KEY)
-    return stored ? new Set(JSON.parse(stored)) : new Set(TAB_GROUPS)
-  })
-
-  useEffect(() => { saveCollapsed(collapsed) }, [collapsed])
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set(TAB_GROUPS))
 
   function toggleGroup(group: string) {
     setCollapsed(prev => {
