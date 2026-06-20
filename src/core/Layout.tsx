@@ -6,14 +6,6 @@ import { useNavigationStore } from './navigationStore'
 
 const COLLAPSE_KEY = 'sidebar-collapsed-groups'
 
-function loadCollapsed(): Set<string> {
-  try {
-    const stored = localStorage.getItem(COLLAPSE_KEY)
-    return stored ? new Set(JSON.parse(stored)) : new Set()
-  } catch {
-    return new Set()
-  }
-}
 
 function saveCollapsed(s: Set<string>) {
   localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...s]))
@@ -39,7 +31,10 @@ function SidebarItem({ tab, active, onClick }: { tab: TabConfig; active: boolean
 export function Layout() {
   const activeId = useNavigationStore(s => s.activeTabId)
   const setActiveId = useNavigationStore(s => s.setActiveTabId)
-  const [collapsed, setCollapsed] = useState<Set<string>>(loadCollapsed)
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
+    const stored = localStorage.getItem(COLLAPSE_KEY)
+    return stored ? new Set(JSON.parse(stored)) : new Set(TAB_GROUPS)
+  })
 
   useEffect(() => { saveCollapsed(collapsed) }, [collapsed])
 
