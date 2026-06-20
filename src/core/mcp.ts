@@ -12,6 +12,12 @@ import { aestheticsTools } from '../modules/aesthetics/tools'
 import { homeTools } from '../modules/home/tools'
 import { professionalTools } from '../modules/professional/tools'
 import { eventsTools } from '../modules/events/tools'
+import { spiritualityTools } from '../modules/spirituality/tools'
+import { learningTools } from '../modules/learning/tools'
+import { travelTools } from '../modules/travel/tools'
+import { socialTools } from '../modules/social/tools'
+import { mentalHealthTools } from '../modules/mental-health/tools'
+import { creativityTools } from '../modules/creativity/tools'
 
 export interface McpTool {
   name: string
@@ -34,4 +40,10 @@ export const mcpTools: McpTool[] = [
   ...homeTools,
   ...professionalTools,
   ...eventsTools,
+  ...spiritualityTools,
+  ...learningTools,
+  ...travelTools,
+  ...socialTools,
+  ...mentalHealthTools,
+  ...creativityTools,
 ]

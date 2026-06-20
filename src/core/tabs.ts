@@ -13,6 +13,12 @@ import { aestheticsTab } from '../modules/aesthetics'
 import { homeTab } from '../modules/home'
 import { professionalTab } from '../modules/professional'
 import { eventsTab } from '../modules/events'
+import { spiritualityTab } from '../modules/spirituality'
+import { learningTab } from '../modules/learning'
+import { travelTab } from '../modules/travel'
+import { socialTab } from '../modules/social'
+import { mentalHealthTab } from '../modules/mental-health'
+import { creativityTab } from '../modules/creativity'
 
 export interface TabConfig {
   id: string
@@ -21,4 +27,4 @@ export interface TabConfig {
   component: ComponentType
 }
 
-export const tabs: TabConfig[] = [visionTab, todoTab, crmTab, financeTab, investmentsTab, healthTab, fitnessTab, shoppingTab, aestheticsTab, homeTab, professionalTab, eventsTab, lucieTab, tweedTab]
+export const tabs: TabConfig[] = [visionTab, todoTab, crmTab, financeTab, investmentsTab, healthTab, fitnessTab, shoppingTab, aestheticsTab, homeTab, professionalTab, eventsTab, spiritualityTab, learningTab, travelTab, socialTab, mentalHealthTab, creativityTab, lucieTab, tweedTab]
