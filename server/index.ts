@@ -27,6 +27,21 @@ const isProd = process.env.NODE_ENV === 'production'
 
 const app = express()
 
+// Basic auth — active when BASIC_AUTH_USER and BASIC_AUTH_PASS are set in .env
+const AUTH_USER = process.env.BASIC_AUTH_USER
+const AUTH_PASS = process.env.BASIC_AUTH_PASS
+if (AUTH_USER && AUTH_PASS) {
+  app.use((req, res, next) => {
+    const header = req.headers.authorization
+    if (header?.startsWith('Basic ')) {
+      const [user, pass] = Buffer.from(header.slice(6), 'base64').toString().split(':', 2)
+      if (user === AUTH_USER && pass === AUTH_PASS) return next()
+    }
+    res.setHeader('WWW-Authenticate', 'Basic realm="Life Manager"')
+    res.status(401).send('Unauthorised')
+  })
+}
+
 app.use(cors())
 app.use(express.json({ limit: '20mb' }))
 
