@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Plus, Trash2, Pencil, X, Download, Upload, Award, Briefcase, Star } from 'lucide-react'
+import { Plus, Trash2, Pencil, X, Download, Upload, Award, Star } from 'lucide-react'
 import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useProfessionalStore } from '../store'
 import type { PerformanceReview, WorkHistoryEntry, ProfessionalSkill, ProfessionalCert, SkillCategory, SkillLevel } from '../types'

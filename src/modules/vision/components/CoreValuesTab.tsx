@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2, Pencil, Check, X, GripVertical } from 'lucide-react'
+import { Plus, Trash2, Pencil, Check, X } from 'lucide-react'
 import { useVisionStore } from '../store'
 import type { CoreValue } from '../types'
 

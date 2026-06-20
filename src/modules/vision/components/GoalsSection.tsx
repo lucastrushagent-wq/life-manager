@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2, Pencil, Check, X, CheckCircle2 } from 'lucide-react'
+import { Plus, Trash2, Pencil, CheckCircle2 } from 'lucide-react'
 import { useVisionStore } from '../store'
 import type { Goal, GoalCategory, GoalStatus, GoalTimeframe } from '../types'
 import { GoalCategoryValues } from '../schema'
@@ -66,8 +66,6 @@ const emptyForm = {
   targetDate: '',
   status: 'active' as GoalStatus,
 }
-
-const today = () => new Date().toISOString().split('T')[0]
 
 export function GoalsSection() {
   const { goals, addGoal, updateGoal, deleteGoal } = useVisionStore()

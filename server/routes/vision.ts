@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, type Request, type Response } from 'express'
 import { db } from '../db.js'
 import fs from 'fs'
 import path from 'path'
@@ -12,12 +12,12 @@ const router = Router()
 
 // ── Vision Statement ──────────────────────────────────────────────────────────
 
-router.get('/statement', (_req, res) => {
+router.get('/statement', (_req: Request, res: Response) => {
   const row = db.prepare("SELECT * FROM visionStatement WHERE id = 'singleton'").get()
   res.json(row ?? null)
 })
 
-router.put('/statement', (req, res) => {
+router.put('/statement', (req: Request, res: Response) => {
   const { content } = req.body
   if (!content && content !== '') return res.status(400).json({ error: 'content required' })
   const updatedAt = new Date().toISOString()
@@ -30,12 +30,12 @@ router.put('/statement', (req, res) => {
 
 // ── Mission Statement ─────────────────────────────────────────────────────────
 
-router.get('/mission', (_req, res) => {
+router.get('/mission', (_req: Request, res: Response) => {
   const row = db.prepare("SELECT * FROM visionMission WHERE id = 'singleton'").get()
   res.json(row ?? null)
 })
 
-router.put('/mission', (req, res) => {
+router.put('/mission', (req: Request, res: Response) => {
   const { content } = req.body
   if (!content && content !== '') return res.status(400).json({ error: 'content required' })
   const updatedAt = new Date().toISOString()
@@ -48,11 +48,11 @@ router.put('/mission', (req, res) => {
 
 // ── Core Values ───────────────────────────────────────────────────────────────
 
-router.get('/values', (_req, res) => {
+router.get('/values', (_req: Request, res: Response) => {
   res.json(db.prepare('SELECT * FROM visionValues ORDER BY sortOrder ASC, createdAt ASC').all())
 })
 
-router.post('/values', (req, res) => {
+router.post('/values', (req: Request, res: Response) => {
   const { name, description } = req.body
   if (!name) return res.status(400).json({ error: 'name required' })
   const id = crypto.randomUUID()
@@ -63,7 +63,7 @@ router.post('/values', (req, res) => {
   res.json(db.prepare('SELECT * FROM visionValues WHERE id = ?').get(id))
 })
 
-router.put('/values/:id', (req, res) => {
+router.put('/values/:id', (req: Request, res: Response) => {
   const existing = db.prepare('SELECT * FROM visionValues WHERE id = ?').get(req.params.id) as Record<string, unknown> | undefined
   if (!existing) return res.status(404).json({ error: 'Not found' })
   const { name, description, sortOrder } = req.body
@@ -76,18 +76,18 @@ router.put('/values/:id', (req, res) => {
   res.json(db.prepare('SELECT * FROM visionValues WHERE id = ?').get(req.params.id))
 })
 
-router.delete('/values/:id', (req, res) => {
+router.delete('/values/:id', (req: Request, res: Response) => {
   db.prepare('DELETE FROM visionValues WHERE id = ?').run(req.params.id)
   res.json({ ok: true })
 })
 
 // ── Goals ─────────────────────────────────────────────────────────────────────
 
-router.get('/goals', (_req, res) => {
+router.get('/goals', (_req: Request, res: Response) => {
   res.json(db.prepare('SELECT * FROM visionGoals ORDER BY category ASC, createdAt ASC').all())
 })
 
-router.post('/goals', (req, res) => {
+router.post('/goals', (req: Request, res: Response) => {
   const { category, title, description, timeframe, targetDate, status } = req.body
   if (!category || !title || !timeframe) return res.status(400).json({ error: 'category, title, timeframe required' })
   const id = crypto.randomUUID()
@@ -99,7 +99,7 @@ router.post('/goals', (req, res) => {
   res.json(db.prepare('SELECT * FROM visionGoals WHERE id = ?').get(id))
 })
 
-router.put('/goals/:id', (req, res) => {
+router.put('/goals/:id', (req: Request, res: Response) => {
   const existing = db.prepare('SELECT * FROM visionGoals WHERE id = ?').get(req.params.id) as Record<string, unknown> | undefined
   if (!existing) return res.status(404).json({ error: 'Not found' })
   const { category, title, description, timeframe, targetDate, status } = req.body
@@ -118,19 +118,19 @@ router.put('/goals/:id', (req, res) => {
   res.json(db.prepare('SELECT * FROM visionGoals WHERE id = ?').get(req.params.id))
 })
 
-router.delete('/goals/:id', (req, res) => {
+router.delete('/goals/:id', (req: Request, res: Response) => {
   db.prepare('DELETE FROM visionGoals WHERE id = ?').run(req.params.id)
   res.json({ ok: true })
 })
 
 // ── Manifesto ─────────────────────────────────────────────────────────────────
 
-router.get('/manifesto', (_req, res) => {
+router.get('/manifesto', (_req: Request, res: Response) => {
   const row = db.prepare("SELECT * FROM visionManifesto WHERE id = 'singleton'").get()
   res.json(row ?? null)
 })
 
-router.put('/manifesto', (req, res) => {
+router.put('/manifesto', (req: Request, res: Response) => {
   const { content } = req.body
   if (!content && content !== '') return res.status(400).json({ error: 'content required' })
   const updatedAt = new Date().toISOString()
@@ -143,7 +143,7 @@ router.put('/manifesto', (req, res) => {
 
 // ── Vision Image ──────────────────────────────────────────────────────────────
 
-router.get('/image', (_req, res) => {
+router.get('/image', (_req: Request, res: Response) => {
   const row = db.prepare("SELECT * FROM visionImage WHERE id = 'singleton'").get() as { filename: string } | undefined
   if (!row) return res.json({ exists: false })
   const filePath = path.join(uploadsDir, row.filename)
@@ -151,7 +151,7 @@ router.get('/image', (_req, res) => {
   res.json({ exists: true, url: `/uploads/${row.filename}` })
 })
 
-router.post('/image', (req, res) => {
+router.post('/image', (req: Request, res: Response) => {
   const { dataUrl } = req.body
   if (!dataUrl || typeof dataUrl !== 'string') return res.status(400).json({ error: 'dataUrl required' })
   const match = dataUrl.match(/^data:image\/(\w+);base64,(.+)$/)
@@ -171,7 +171,7 @@ router.post('/image', (req, res) => {
   res.json({ exists: true, url: `/uploads/${filename}` })
 })
 
-router.delete('/image', (_req, res) => {
+router.delete('/image', (_req: Request, res: Response) => {
   const row = db.prepare("SELECT * FROM visionImage WHERE id = 'singleton'").get() as { filename: string } | undefined
   if (row) {
     const filePath = path.join(uploadsDir, row.filename)

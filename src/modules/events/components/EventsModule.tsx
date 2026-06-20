@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Bell, BellOff, ExternalLink, Pencil, Trash2, X, Check, CalendarDays, Star } from 'lucide-react'
+import { Plus, Bell, BellOff, ExternalLink, Pencil, Trash2, Check, CalendarDays, Star } from 'lucide-react'
 import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useEventsStore } from '../store'
 import { EVENT_CATEGORIES, EVENT_STATUSES } from '../schema'

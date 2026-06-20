@@ -6,7 +6,7 @@ export const holdingSchema = z.object({
   ticker: z.string().min(1),
   name: z.string().min(1),
   assetClass: z.enum(['us_stocks', 'intl_stocks', 'etf', 'bonds', 'crypto', 'real_estate', 'cash', 'other']),
-  account: z.string().default(''),
+  account: z.string(),
   shares: z.number().positive(),
   avgCost: z.number().min(0),
   currentPrice: z.number().min(0),

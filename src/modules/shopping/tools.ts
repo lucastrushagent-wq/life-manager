@@ -25,8 +25,8 @@ export const shoppingTools: McpTool[] = [
       notes: z.string().optional(),
     }),
     handler: async (input) => {
-      const { storeId, ...data } = input as { storeId: string; name: string; quantity?: string; notes?: string }
-      return shoppingService.addItem(storeId, data)
+      const { storeId, ...rest } = input as { storeId: string; name: string; quantity?: string; notes?: string }
+      return shoppingService.addItem(storeId, { ...rest, recurring: false })
     },
   },
   {

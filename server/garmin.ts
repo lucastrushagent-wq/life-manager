@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore — no type declarations for garmin-connect
 import { GarminConnect } from 'garmin-connect'
 import { db } from './db.js'
 

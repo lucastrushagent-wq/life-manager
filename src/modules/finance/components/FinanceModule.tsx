@@ -142,6 +142,7 @@ export function FinanceModule() {
       type: CATEGORY_TYPE[form.category],
       value,
       lastUpdated: form.lastUpdated || todayStr(),
+      excluded: false,
       notes: form.notes.trim() || undefined,
     }
     if (editingId) {
@@ -181,6 +182,7 @@ export function FinanceModule() {
       label: targetForm.label.trim(),
       targetAmount: amount,
       targetDate: targetForm.targetDate || undefined,
+      showOnChart: false,
       notes: targetForm.notes.trim() || undefined,
     }
     if (editingTargetId) {

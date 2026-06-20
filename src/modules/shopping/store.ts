@@ -18,7 +18,7 @@ interface ShoppingState {
   clearChecked: (storeId: string) => Promise<void>
 }
 
-export const useShoppingStore = create<ShoppingState>((set, get) => ({
+export const useShoppingStore = create<ShoppingState>((set) => ({
   stores: [],
   items: {},
   activeStoreId: null,
