@@ -25,6 +25,38 @@ export interface TabConfig {
   label: string
   icon: ComponentType<{ className?: string }>
   component: ComponentType
+  group?: string
 }
 
-export const tabs: TabConfig[] = [visionTab, todoTab, crmTab, financeTab, investmentsTab, healthTab, fitnessTab, shoppingTab, aestheticsTab, homeTab, professionalTab, eventsTab, spiritualityTab, learningTab, travelTab, socialTab, mentalHealthTab, creativityTab, lucieTab, tweedTab]
+export const TAB_GROUPS = ['Money', 'Relationships', 'Health & Body', 'Career', 'Life', 'Household'] as const
+export type TabGroup = typeof TAB_GROUPS[number]
+
+export const tabs: TabConfig[] = [
+  // Standalone
+  { ...visionTab },
+  { ...todoTab },
+  // Money
+  { ...financeTab,      group: 'Money' },
+  { ...investmentsTab,  group: 'Money' },
+  // Relationships
+  { ...crmTab,          group: 'Relationships' },
+  { ...lucieTab,        group: 'Relationships' },
+  { ...tweedTab,        group: 'Relationships' },
+  // Health & Body
+  { ...healthTab,       group: 'Health & Body' },
+  { ...fitnessTab,      group: 'Health & Body' },
+  { ...mentalHealthTab, group: 'Health & Body' },
+  { ...aestheticsTab,   group: 'Health & Body' },
+  // Career
+  { ...professionalTab, group: 'Career' },
+  { ...learningTab,     group: 'Career' },
+  // Life
+  { ...spiritualityTab, group: 'Life' },
+  { ...creativityTab,   group: 'Life' },
+  { ...socialTab,       group: 'Life' },
+  { ...eventsTab,       group: 'Life' },
+  { ...travelTab,       group: 'Life' },
+  // Household
+  { ...shoppingTab,     group: 'Household' },
+  { ...homeTab,         group: 'Household' },
+]
