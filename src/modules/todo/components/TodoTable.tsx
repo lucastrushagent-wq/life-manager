@@ -1,5 +1,5 @@
 import { useState, KeyboardEvent } from 'react'
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Calendar, Pencil, X, Check } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Calendar, Pencil, X } from 'lucide-react'
 import type { Priority, SortDir, SortField, Todo } from '../types'
 
 interface Props {
