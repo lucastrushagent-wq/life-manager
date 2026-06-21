@@ -55,17 +55,17 @@ export function AddTodoForm({ onAdd, onCancel }: Props) {
         className="w-full text-sm outline-none placeholder-gray-400 mb-3 text-gray-600 resize-none border border-gray-200 rounded px-2 py-1.5 focus:border-blue-400"
       />
 
-      <div className="flex gap-3 mb-3">
+      <div className="flex flex-col sm:flex-row gap-2 mb-3">
         <input
           type="date"
           value={dueDate}
           onChange={e => setDueDate(e.target.value)}
-          className="text-sm border border-gray-200 rounded px-2 py-1 text-gray-600 outline-none focus:border-blue-400"
+          className="w-full sm:w-auto text-sm border border-gray-200 rounded px-3 py-2.5 sm:py-1.5 text-gray-600 outline-none focus:border-blue-400"
         />
         <select
           value={priority}
           onChange={e => setPriority(e.target.value as Priority)}
-          className="text-sm border border-gray-200 rounded px-2 py-1 text-gray-600 outline-none focus:border-blue-400"
+          className="w-full sm:w-auto text-sm border border-gray-200 rounded px-3 py-2.5 sm:py-1.5 text-gray-600 outline-none focus:border-blue-400 bg-white"
         >
           <option value="high">High priority</option>
           <option value="medium">Medium priority</option>
@@ -73,7 +73,7 @@ export function AddTodoForm({ onAdd, onCancel }: Props) {
         </select>
       </div>
 
-      <div className="mb-3">
+      <div className="mb-4">
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-1.5">
             {tags.map(tag => (
@@ -93,18 +93,18 @@ export function AddTodoForm({ onAdd, onCancel }: Props) {
           onChange={e => setTagInput(e.target.value)}
           onKeyDown={handleTagKeyDown}
           onBlur={addTag}
-          className="text-sm border border-gray-200 rounded px-2 py-1 w-full outline-none focus:border-blue-400 placeholder-gray-400"
+          className="text-sm border border-gray-200 rounded px-3 py-2.5 sm:py-1.5 w-full outline-none focus:border-blue-400 placeholder-gray-400"
         />
       </div>
 
-      <div className="flex justify-end gap-2">
-        <button onClick={onCancel} className="text-sm px-3 py-1.5 text-gray-500 hover:text-gray-700">
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+        <button onClick={onCancel} className="text-sm px-3 py-2.5 sm:py-1.5 text-gray-500 hover:text-gray-700 text-center">
           Cancel
         </button>
         <button
           onClick={handleSubmit}
           disabled={!title.trim()}
-          className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-1.5 text-sm px-3 py-2.5 sm:py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Plus className="w-3.5 h-3.5" />
           Add task
