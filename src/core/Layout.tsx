@@ -104,7 +104,10 @@ export function Layout() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
           {/* Drawer */}
           <aside className="relative z-50 w-64 bg-gray-900 flex flex-col h-full">
-            <div className="px-4 py-5 border-b border-white/10 flex items-center justify-between shrink-0">
+            <div
+              className="px-4 border-b border-white/10 flex items-center justify-between shrink-0"
+              style={{ paddingTop: 'max(20px, env(safe-area-inset-top))', paddingBottom: '20px' }}
+            >
               <span className="text-white font-semibold text-sm tracking-wide">Life Manager</span>
               <button onClick={() => setMobileOpen(false)} className="text-gray-400 hover:text-white p-1">
                 <X className="w-5 h-5" />
@@ -117,8 +120,11 @@ export function Layout() {
 
       {/* ── Main content ── */}
       <div className="flex-1 flex flex-col min-w-0 h-screen">
-        {/* Mobile top bar */}
-        <header className="lg:hidden flex items-center gap-3 px-4 py-3 bg-gray-900 border-b border-white/10 shrink-0">
+        {/* Mobile top bar — padded for iOS safe area */}
+        <header
+          className="lg:hidden flex items-center gap-3 px-4 bg-gray-900 border-b border-white/10 shrink-0"
+          style={{ paddingTop: 'max(12px, env(safe-area-inset-top))', paddingBottom: '12px' }}
+        >
           <button onClick={() => setMobileOpen(true)} className="text-gray-400 hover:text-white p-1 -ml-1">
             <Menu className="w-5 h-5" />
           </button>
