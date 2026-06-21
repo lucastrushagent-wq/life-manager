@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, Eye, Archive, Trash2, RotateCcw } from 'lucide-react'
 import type { Contact } from '../types'
 import type { CrmSortDir, CrmSortField } from '../hooks/useCrm'
 
@@ -67,111 +67,164 @@ export function ContactTable({ contacts, sortField, sortDir, onToggleSort, onSel
     setConfirm(null)
   }
 
-  return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
-            <th className="px-4 py-3 text-left">
-              <SortHeader label="Name" field="name" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
-            </th>
-            <th className="px-4 py-3 text-left">
-              <SortHeader label="Company" field="company" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-gray-600">Relationship</th>
-            <th className="px-4 py-3 text-left">
-              <SortHeader label="Reminder" field="followUpDays" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
-            </th>
-            <th className="px-4 py-3 text-left">
-              <SortHeader label="Last Contact" field="lastContactedAt" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
-            </th>
-            <th className="px-4 py-3 text-left">
-              <SortHeader label="Next Follow-up" field="nextFollowUp" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
-            </th>
-            <th className="px-4 py-3 text-right font-medium text-gray-600 w-48">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
-          {contacts.map(contact => {
-            const nextFollowUp = getNextFollowUp(contact)
-            const isOverdue = nextFollowUp ? nextFollowUp < today : false
-            const isConfirming = confirm?.id === contact.id
+  function ActionButtons({ contact }: { contact: Contact }) {
+    const isConfirming = confirm?.id === contact.id
+    if (isConfirming) {
+      return (
+        <span className="inline-flex items-center gap-2">
+          <span className="text-xs text-gray-500">Sure?</span>
+          <button onClick={() => handleConfirm(contact.id, confirm.action)}
+            className="text-xs px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600">Yes</button>
+          <button onClick={() => setConfirm(null)}
+            className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">No</button>
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center gap-1">
+        <button onClick={() => onSelect(contact.id)}
+          className="p-2 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="View">
+          <Eye className="w-4 h-4" />
+        </button>
+        <button onClick={() => setConfirm({ id: contact.id, action: showArchived ? 'unarchive' : 'archive' })}
+          className="p-2 rounded-md text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+          title={showArchived ? 'Unarchive' : 'Archive'}>
+          {showArchived ? <RotateCcw className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+        </button>
+        <button onClick={() => setConfirm({ id: contact.id, action: 'delete' })}
+          className="p-2 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Delete">
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </span>
+    )
+  }
 
-            return (
-              <tr key={contact.id} className="bg-white hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => !isConfirming && onSelect(contact.id)}>
-                <td className="px-4 py-3">
-                  <div className="font-medium text-gray-800">{contact.name}</div>
-                  {contact.role && <div className="text-xs text-gray-400">{contact.role}</div>}
-                </td>
-                <td className="px-4 py-3 text-gray-500">{contact.company ?? <span className="text-gray-300">—</span>}</td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1">
-                    {contact.relationship.map(r => (
-                      <span key={r} className="text-xs bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full">{r}</span>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <span className={contact.followUpDays
-                    ? contact.followUpDays <= 7 ? 'text-purple-600 font-medium'
-                    : contact.followUpDays <= 30 ? 'text-blue-600'
-                    : 'text-gray-500'
-                    : 'text-gray-300'}>
-                    {formatFrequency(contact.followUpDays)}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                  {contact.lastContactedAt
-                    ? <span>{new Date(contact.lastContactedAt).toLocaleDateString()} · {daysAgo(contact.lastContactedAt)}</span>
-                    : <span className="text-gray-300">Never</span>}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {nextFollowUp ? (
-                    <span className={isOverdue ? 'text-red-500 font-medium' : 'text-gray-500'}>
-                      {isOverdue
-                        ? contact.lastContactedAt
-                          ? `⚠ ${nextFollowUp.toLocaleDateString()}`
-                          : '⚠ Never contacted'
-                        : nextFollowUp.toLocaleDateString()}
-                    </span>
-                  ) : <span className="text-gray-300">—</span>}
-                </td>
-                <td className="px-4 py-3 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                  {isConfirming ? (
-                    <span className="inline-flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Are you sure?</span>
-                      <button
-                        onClick={() => handleConfirm(contact.id, confirm.action)}
-                        className="text-xs px-2 py-0.5 rounded bg-red-500 text-white hover:bg-red-600"
-                      >Yes</button>
-                      <button
-                        onClick={() => setConfirm(null)}
-                        className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      >No</button>
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-3">
-                      <button
-                        onClick={() => onSelect(contact.id)}
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                      >View</button>
-                      <button
-                        onClick={() => setConfirm({ id: contact.id, action: showArchived ? 'unarchive' : 'archive' })}
-                        className="text-xs text-amber-600 hover:text-amber-800"
-                      >{showArchived ? 'Unarchive' : 'Archive'}</button>
-                      <button
-                        onClick={() => setConfirm({ id: contact.id, action: 'delete' })}
-                        className="text-xs text-red-400 hover:text-red-600"
-                      >Delete</button>
-                    </span>
-                  )}
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+  // ── Mobile cards ──────────────────────────────────────────────────────────
+
+  const MobileCards = () => (
+    <div className="space-y-2 sm:hidden">
+      {contacts.map(contact => {
+        const nextFollowUp = getNextFollowUp(contact)
+        const isOverdue = nextFollowUp ? nextFollowUp < today : false
+
+        return (
+          <div key={contact.id} className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex items-start justify-between gap-2">
+              <button onClick={() => onSelect(contact.id)} className="flex-1 text-left min-w-0">
+                <div className="font-medium text-gray-800">{contact.name}</div>
+                {contact.role && <div className="text-xs text-gray-400">{contact.role}</div>}
+                {contact.company && <div className="text-xs text-gray-500 mt-0.5">{contact.company}</div>}
+              </button>
+              <div onClick={e => e.stopPropagation()}>
+                <ActionButtons contact={contact} />
+              </div>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5 items-center">
+              {contact.relationship.map(r => (
+                <span key={r} className="text-xs bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full">{r}</span>
+              ))}
+              {contact.followUpDays && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                  contact.followUpDays <= 7 ? 'bg-purple-100 text-purple-700' :
+                  contact.followUpDays <= 30 ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'
+                }`}>{formatFrequency(contact.followUpDays)}</span>
+              )}
+            </div>
+            <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
+              {contact.lastContactedAt && <span>{daysAgo(contact.lastContactedAt)}</span>}
+              {nextFollowUp && (
+                <span className={isOverdue ? 'text-red-500 font-medium' : ''}>
+                  {isOverdue ? '⚠ Overdue' : `Next: ${nextFollowUp.toLocaleDateString()}`}
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      })}
     </div>
+  )
+
+  // ── Desktop table ─────────────────────────────────────────────────────────
+
+  return (
+    <>
+      <MobileCards />
+      <div className="hidden sm:block overflow-x-auto rounded-lg border border-gray-200">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="px-4 py-3 text-left">
+                <SortHeader label="Name" field="name" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
+              </th>
+              <th className="px-4 py-3 text-left">
+                <SortHeader label="Company" field="company" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">Relationship</th>
+              <th className="px-4 py-3 text-left">
+                <SortHeader label="Reminder" field="followUpDays" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
+              </th>
+              <th className="px-4 py-3 text-left">
+                <SortHeader label="Last Contact" field="lastContactedAt" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
+              </th>
+              <th className="px-4 py-3 text-left">
+                <SortHeader label="Next Follow-up" field="nextFollowUp" sortField={sortField} sortDir={sortDir} onToggleSort={onToggleSort} />
+              </th>
+              <th className="px-4 py-3 text-right font-medium text-gray-600 w-36">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {contacts.map(contact => {
+              const nextFollowUp = getNextFollowUp(contact)
+              const isOverdue = nextFollowUp ? nextFollowUp < today : false
+              const isConfirming = confirm?.id === contact.id
+
+              return (
+                <tr key={contact.id} className="bg-white hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => !isConfirming && onSelect(contact.id)}>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-gray-800">{contact.name}</div>
+                    {contact.role && <div className="text-xs text-gray-400">{contact.role}</div>}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500">{contact.company ?? <span className="text-gray-300">—</span>}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {contact.relationship.map(r => (
+                        <span key={r} className="text-xs bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full">{r}</span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className={contact.followUpDays
+                      ? contact.followUpDays <= 7 ? 'text-purple-600 font-medium'
+                      : contact.followUpDays <= 30 ? 'text-blue-600'
+                      : 'text-gray-500'
+                      : 'text-gray-300'}>
+                      {formatFrequency(contact.followUpDays)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                    {contact.lastContactedAt
+                      ? <span>{new Date(contact.lastContactedAt).toLocaleDateString()} · {daysAgo(contact.lastContactedAt)}</span>
+                      : <span className="text-gray-300">Never</span>}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {nextFollowUp ? (
+                      <span className={isOverdue ? 'text-red-500 font-medium' : 'text-gray-500'}>
+                        {isOverdue
+                          ? contact.lastContactedAt ? `⚠ ${nextFollowUp.toLocaleDateString()}` : '⚠ Never contacted'
+                          : nextFollowUp.toLocaleDateString()}
+                      </span>
+                    ) : <span className="text-gray-300">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                    <ActionButtons contact={contact} />
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   )
 }
