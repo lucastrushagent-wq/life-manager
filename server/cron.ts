@@ -1,6 +1,7 @@
 import cron from 'node-cron'
 import { sendMorningEmail } from './emailService.js'
 import { syncGarminData } from './garmin.js'
+import { syncYnab } from './ynab.js'
 
 export function startCronJobs() {
   // Default: 6:00am daily. Override with EMAIL_SEND_TIME env var (cron syntax, e.g. "0 7 * * *" for 7am)
@@ -26,6 +27,19 @@ export function startCronJobs() {
     }
   }, { timezone: process.env.TZ ?? 'America/New_York' })
   console.log('[cron] Garmin sync scheduled: 0 20 * * *')
+
+  // Nightly YNAB sync at 2am — balances + last 90 days of transactions
+  cron.schedule('0 2 * * *', async () => {
+    if (!process.env.YNAB_API_KEY) return
+    console.log('[cron] Syncing YNAB...')
+    try {
+      const result = await syncYnab()
+      console.log(`[cron] YNAB sync done: ${result.accountsCreated} created, ${result.accountsUpdated} updated, ${result.transactionsAdded} new transactions`)
+    } catch (e: any) {
+      console.error('[cron] YNAB sync failed:', e.message)
+    }
+  }, { timezone: process.env.TZ ?? 'America/New_York' })
+  console.log('[cron] YNAB sync scheduled: 0 2 * * *')
 }
 
 async function runMorningEmail() {

@@ -363,6 +363,16 @@ db.exec(`
     updatedAt TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS ynabSyncLog (
+    id                TEXT PRIMARY KEY,
+    syncedAt          TEXT NOT NULL,
+    budgetId          TEXT,
+    accountsUpdated   INTEGER NOT NULL DEFAULT 0,
+    accountsCreated   INTEGER NOT NULL DEFAULT 0,
+    transactionsAdded INTEGER NOT NULL DEFAULT 0,
+    error             TEXT
+  );
+
   CREATE TABLE IF NOT EXISTS professionalResumes (
     id           TEXT PRIMARY KEY,
     originalName TEXT NOT NULL,
@@ -461,6 +471,15 @@ if (!sessionCols.includes('lactateThresholdHr'))     db.exec("ALTER TABLE fitnes
 if (!sessionCols.includes('avgVerticalOscillation')) db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgVerticalOscillation REAL")
 if (!sessionCols.includes('avgGroundContactMs'))     db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgGroundContactMs REAL")
 if (!sessionCols.includes('avgStrideLength'))        db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgStrideLength REAL")
+
+// YNAB integration migrations
+const financeAccountColNames = (db.prepare("PRAGMA table_info(financeAccounts)").all() as { name: string }[]).map(c => c.name)
+if (!financeAccountColNames.includes('ynabAccountId')) db.exec("ALTER TABLE financeAccounts ADD COLUMN ynabAccountId TEXT")
+db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_financeAccounts_ynab ON financeAccounts(ynabAccountId) WHERE ynabAccountId IS NOT NULL")
+
+const expenseCols = (db.prepare("PRAGMA table_info(expenses)").all() as { name: string }[]).map(c => c.name)
+if (!expenseCols.includes('ynabTransactionId')) db.exec("ALTER TABLE expenses ADD COLUMN ynabTransactionId TEXT")
+db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_expenses_ynab_tx ON expenses(ynabTransactionId) WHERE ynabTransactionId IS NOT NULL")
 
 // Seed default shopping stores if none exist
 const storeCount = (db.prepare("SELECT COUNT(*) as n FROM shoppingStores").get() as { n: number }).n

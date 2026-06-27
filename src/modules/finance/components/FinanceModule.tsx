@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign, Target, Check, EyeOff, Eye, LineChart } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, TrendingUp, TrendingDown, DollarSign, Target, Check, EyeOff, Eye, LineChart, RefreshCw, Loader2 } from 'lucide-react'
 import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useFinanceStore } from '../store'
 import type { AccountCategory, AccountType, FinanceAccount, NetWorthTarget } from '../types'
@@ -94,6 +94,15 @@ function daysUntil(dateStr: string): number {
   return Math.round((target - Date.now()) / 86_400_000)
 }
 
+type YnabSyncStatus = 'idle' | 'syncing' | 'done' | 'error'
+
+interface YnabState {
+  configured: boolean
+  status: YnabSyncStatus
+  message: string
+  lastSync: string | null
+}
+
 export function FinanceModule() {
   const { accounts, snapshots, targets, load, create, update, remove, createTarget, updateTarget, removeTarget } = useFinanceStore()
   const [activeTab, setActiveTab] = useState<InnerTab>('net_worth')
@@ -107,7 +116,38 @@ export function FinanceModule() {
   const [targetForm, setTargetForm] = useState<TargetFormState>(DEFAULT_TARGET_FORM)
   const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<string | null>(null)
 
+  const [ynab, setYnab] = useState<YnabState>({ configured: false, status: 'idle', message: '', lastSync: null })
+
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    fetch('/api/ynab/status')
+      .then(r => r.json())
+      .then(data => {
+        setYnab(prev => ({
+          ...prev,
+          configured: data.configured,
+          lastSync: data.lastSync?.syncedAt ?? null,
+        }))
+      })
+      .catch(() => {})
+  }, [])
+
+  async function handleYnabSync() {
+    setYnab(prev => ({ ...prev, status: 'syncing', message: '' }))
+    try {
+      const res = await fetch('/api/ynab/sync', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Sync failed')
+      const msg = `${data.accountsCreated + data.accountsUpdated} accounts updated, ${data.transactionsAdded} new transactions`
+      setYnab(prev => ({ ...prev, status: 'done', message: msg, lastSync: new Date().toISOString() }))
+      load() // refresh account balances
+      setTimeout(() => setYnab(prev => ({ ...prev, status: 'idle', message: '' })), 5000)
+    } catch (e: any) {
+      setYnab(prev => ({ ...prev, status: 'error', message: e.message }))
+      setTimeout(() => setYnab(prev => ({ ...prev, status: 'idle', message: '' })), 6000)
+    }
+  }
 
   const included = accounts.filter(a => !a.excluded)
   const totalAssets = included.filter(a => a.type === 'asset').reduce((s, a) => s + a.value, 0)
@@ -276,18 +316,46 @@ export function FinanceModule() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-3">
         <h1 className="text-xl font-semibold text-gray-900">Finance</h1>
         {activeTab === 'net_worth' && !showForm && (
-          <button
-            onClick={startAdd}
-            className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Add account
-          </button>
+          <div className="flex items-center gap-2">
+            {ynab.configured && (
+              <button
+                onClick={handleYnabSync}
+                disabled={ynab.status === 'syncing'}
+                title={ynab.lastSync ? `Last synced: ${new Date(ynab.lastSync).toLocaleString()}` : 'Sync from YNAB'}
+                className={`flex items-center gap-1.5 text-sm px-3 py-1.5 border rounded-md transition-colors disabled:cursor-not-allowed ${
+                  ynab.status === 'done' ? 'border-green-300 text-green-700 bg-green-50' :
+                  ynab.status === 'error' ? 'border-red-300 text-red-600 bg-red-50' :
+                  'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {ynab.status === 'syncing'
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <RefreshCw className="w-4 h-4" />}
+                {ynab.status === 'syncing' ? 'Syncing…' :
+                 ynab.status === 'done' ? 'Synced!' :
+                 ynab.status === 'error' ? 'Failed' : 'Sync YNAB'}
+              </button>
+            )}
+            <button
+              onClick={startAdd}
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4" />
+              Add account
+            </button>
+          </div>
         )}
       </div>
+      {ynab.message && (
+        <div className={`mb-4 px-4 py-2.5 rounded-lg text-sm ${
+          ynab.status === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
+        }`}>
+          {ynab.status === 'error' ? `YNAB sync failed: ${ynab.message}` : `YNAB synced — ${ynab.message}`}
+        </div>
+      )}
 
       <PhilosophyBox moduleId="finance" />
 
