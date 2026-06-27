@@ -137,93 +137,73 @@ export async function syncGarminData(daysBack = 30): Promise<GarminSyncResult> {
     result.errors.push(`Activities sync: ${e.message}`)
   }
 
-  // ── Body composition (scale) — getDailyWeightData for full data ───────────
+  // ── Body composition (scale) — try known method names defensively ──────────
   try {
-    const weightData = await (client as any).getDailyWeightData(startDateStr, endDateStr) as any
-    const entries = weightData?.dateWeightList ?? weightData?.allMetrics?.metricsForDates ?? []
-    for (const entry of entries) {
-      try {
-        const date = entry.calendarDate ?? entry.date
-        if (!date) continue
-        const kgToLbs = (kg: number) => Math.round(kg * 2.20462 * 10) / 10
-        const gToLbs = (g: number) => Math.round(g * 0.00220462 * 10) / 10
+    const kgToLbs = (kg: number) => Math.round(kg * 2.20462 * 10) / 10
+    const gToLbs  = (g: number)  => Math.round(g * 0.00220462 * 10) / 10
 
-        if (entry.weight) {
-          upsertMetric(date, 'body', 'weight', kgToLbs(entry.weight / 1000), 'lbs', `garmin-weight-${date}`)
-          result.metricsAdded++
-        }
-        if (entry.bmi) {
-          upsertMetric(date, 'body', 'bmi', entry.bmi, '', `garmin-bmi-${date}`)
-          result.metricsAdded++
-        }
-        if (entry.bodyFatPercentage) {
-          upsertMetric(date, 'body', 'body_fat', entry.bodyFatPercentage, '%', `garmin-bodyfat-${date}`)
-          result.metricsAdded++
-        }
-        if (entry.muscleMass) {
-          upsertMetric(date, 'body', 'muscle_mass', gToLbs(entry.muscleMass), 'lbs', `garmin-muscle-${date}`)
-          result.metricsAdded++
-        }
-        if (entry.boneMass) {
-          upsertMetric(date, 'body', 'bone_mass', gToLbs(entry.boneMass), 'lbs', `garmin-bone-${date}`)
-          result.metricsAdded++
-        }
-        if (entry.bodyWater) {
-          upsertMetric(date, 'body', 'hydration', entry.bodyWater, '%', `garmin-hydration-${date}`)
-          result.metricsAdded++
-        }
-        if (entry.visceralFat) {
-          upsertMetric(date, 'body', 'visceral_fat', entry.visceralFat, '', `garmin-visceralfat-${date}`)
-          result.metricsAdded++
-        }
-        if (entry.metabolicAge) {
-          upsertMetric(date, 'body', 'metabolic_age', entry.metabolicAge, 'yrs', `garmin-metabolicage-${date}`)
-          result.metricsAdded++
-        }
-      } catch (e: any) { result.errors.push(`Weight entry: ${e.message}`) }
-    }
-  } catch (e: any) {
-    // Fall back to getBodyComposition
-    try {
-      const bodyComp = await (client as any).getBodyComposition(startDateStr, endDateStr)
-      const entries = bodyComp?.allMetrics?.metricsForDates ?? bodyComp?.dateWeightList ?? []
+    // Probe which method this version of garmin-connect exposes
+    const fetchBodyData: (() => Promise<any>) | null =
+      typeof (client as any).getDailyWeightData === 'function'
+        ? () => (client as any).getDailyWeightData(startDateStr, endDateStr)
+      : typeof (client as any).getBodyComposition === 'function'
+        ? () => (client as any).getBodyComposition(startDateStr, endDateStr)
+      : typeof (client as any).getBodyCompositionData === 'function'
+        ? () => (client as any).getBodyCompositionData(startDateStr, endDateStr)
+      : null
+
+    if (!fetchBodyData) {
+      result.errors.push('Body composition: no compatible method found in this garmin-connect version (skipped)')
+    } else {
+      const data = await fetchBodyData()
+      const entries: any[] =
+        data?.dateWeightList ??
+        data?.allMetrics?.metricsForDates ??
+        (Array.isArray(data) ? data : [])
+
       for (const entry of entries) {
         try {
           const date = entry.calendarDate ?? entry.date ?? (entry.dateTime ? dateStr(new Date(entry.dateTime)) : null)
           if (!date) continue
-          const metrics = entry.metrics ?? entry
-          const kgToLbs = (kg: number) => Math.round(kg * 2.20462 * 10) / 10
-          const gToLbs = (g: number) => Math.round(g * 0.00220462 * 10) / 10
+          const m = entry.metrics ?? entry   // some versions nest under .metrics
 
-          if (metrics.weight || entry.weight) {
-            upsertMetric(date, 'body', 'weight', kgToLbs((metrics.weight ?? entry.weight) / 1000), 'lbs', `garmin-weight-${date}`)
+          if (m.weight ?? entry.weight) {
+            upsertMetric(date, 'body', 'weight', kgToLbs((m.weight ?? entry.weight) / 1000), 'lbs', `garmin-weight-${date}`)
             result.metricsAdded++
           }
-          if (metrics.bmi ?? entry.bmi) {
-            upsertMetric(date, 'body', 'bmi', metrics.bmi ?? entry.bmi, '', `garmin-bmi-${date}`)
+          if (m.bmi ?? entry.bmi) {
+            upsertMetric(date, 'body', 'bmi', m.bmi ?? entry.bmi, '', `garmin-bmi-${date}`)
             result.metricsAdded++
           }
-          if (metrics.bodyFatPercentage ?? entry.bodyFatPercentage) {
-            upsertMetric(date, 'body', 'body_fat', metrics.bodyFatPercentage ?? entry.bodyFatPercentage, '%', `garmin-bodyfat-${date}`)
+          if (m.bodyFatPercentage ?? entry.bodyFatPercentage) {
+            upsertMetric(date, 'body', 'body_fat', m.bodyFatPercentage ?? entry.bodyFatPercentage, '%', `garmin-bodyfat-${date}`)
             result.metricsAdded++
           }
-          if (metrics.muscleMass ?? entry.muscleMass) {
-            upsertMetric(date, 'body', 'muscle_mass', gToLbs(metrics.muscleMass ?? entry.muscleMass), 'lbs', `garmin-muscle-${date}`)
+          if (m.muscleMass ?? entry.muscleMass) {
+            upsertMetric(date, 'body', 'muscle_mass', gToLbs(m.muscleMass ?? entry.muscleMass), 'lbs', `garmin-muscle-${date}`)
             result.metricsAdded++
           }
-          if (metrics.boneMass ?? entry.boneMass) {
-            upsertMetric(date, 'body', 'bone_mass', gToLbs(metrics.boneMass ?? entry.boneMass), 'lbs', `garmin-bone-${date}`)
+          if (m.boneMass ?? entry.boneMass) {
+            upsertMetric(date, 'body', 'bone_mass', gToLbs(m.boneMass ?? entry.boneMass), 'lbs', `garmin-bone-${date}`)
             result.metricsAdded++
           }
-          if (metrics.hydrationPercentage ?? entry.hydrationPercentage) {
-            upsertMetric(date, 'body', 'hydration', metrics.hydrationPercentage ?? entry.hydrationPercentage, '%', `garmin-hydration-${date}`)
+          if (m.bodyWater ?? entry.bodyWater) {
+            upsertMetric(date, 'body', 'hydration', m.bodyWater ?? entry.bodyWater, '%', `garmin-hydration-${date}`)
             result.metricsAdded++
           }
-        } catch (e2: any) { result.errors.push(`Body comp entry: ${e2.message}`) }
+          if (m.visceralFat ?? entry.visceralFat) {
+            upsertMetric(date, 'body', 'visceral_fat', m.visceralFat ?? entry.visceralFat, '', `garmin-visceralfat-${date}`)
+            result.metricsAdded++
+          }
+          if (m.metabolicAge ?? entry.metabolicAge) {
+            upsertMetric(date, 'body', 'metabolic_age', m.metabolicAge ?? entry.metabolicAge, 'yrs', `garmin-metabolicage-${date}`)
+            result.metricsAdded++
+          }
+        } catch (e: any) { result.errors.push(`Body comp entry: ${e.message}`) }
       }
-    } catch (e2: any) {
-      result.errors.push(`Body composition: ${e2.message}`)
     }
+  } catch (e: any) {
+    result.errors.push(`Body composition: ${e.message}`)
   }
 
   // ── Daily health stats (iterate each day) ─────────────────────────────────
