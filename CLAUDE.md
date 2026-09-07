@@ -139,7 +139,7 @@ agents bypass it.
 
 ## Tabs
 
-22 tabs. Two standalone, the rest grouped via `TAB_GROUPS` in `src/core/tabs.ts`.
+23 tabs. Two standalone, the rest grouped via `TAB_GROUPS` in `src/core/tabs.ts`.
 
 | Group          | Tabs                                                            |
 |----------------|-----------------------------------------------------------------|
@@ -149,7 +149,7 @@ agents bypass it.
 | Health & Body  | Health, Fitness, Mental Health\*, Aesthetics, Fitness Events    |
 | Career         | Professional, Learning\*                                        |
 | Life           | Spirituality\*, Creativity\*, Social\*, Events, Travel\*         |
-| Household      | Shopping, Home\*, Service Providers                             |
+| Household      | Shopping, Home\*, Technology, Service Providers                 |
 
 \* placeholder
 
@@ -166,6 +166,11 @@ agents bypass it.
   holds the specific brand/size; `isPreference` marks a standing preference, which
   "clear checked" unchecks rather than deletes. `GET /api/shopping/preferences?q=`
   is the agent lookup.
+- **Technology** — device inventory (warranty expiry, serial numbers for claims,
+  who uses what and where) plus recurring tech subscriptions. Costs normalise to an
+  annual figure so mixed billing cycles are comparable.
+  `GET /api/technology/expiring?days=N` returns `{ warranties, renewals }`,
+  excluding sold/retired devices and already-lapsed warranties.
 - **Service Providers** — doctor, dentist, hairdresser, trades etc. The
   `preferences` field is freeform "my usual" text an agent reads before booking.
   Optional `frequencyDays` drives a due/overdue indicator.

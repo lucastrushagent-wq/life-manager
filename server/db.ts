@@ -363,6 +363,38 @@ db.exec(`
     updatedAt TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS techDevices (
+    id             TEXT PRIMARY KEY,
+    name           TEXT NOT NULL,
+    category       TEXT NOT NULL DEFAULT 'other',
+    brand          TEXT,
+    model          TEXT,
+    serialNumber   TEXT,
+    purchaseDate   TEXT,
+    purchasePrice  REAL,
+    warrantyExpiry TEXT,
+    status         TEXT NOT NULL DEFAULT 'active',
+    assignedTo     TEXT,
+    location       TEXT,
+    url            TEXT,
+    notes          TEXT,
+    createdAt      TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS techSubscriptions (
+    id           TEXT PRIMARY KEY,
+    name         TEXT NOT NULL,
+    provider     TEXT,
+    category     TEXT NOT NULL DEFAULT 'other',
+    cost         REAL,
+    billingCycle TEXT NOT NULL DEFAULT 'monthly',
+    renewalDate  TEXT,
+    status       TEXT NOT NULL DEFAULT 'active',
+    url          TEXT,
+    notes        TEXT,
+    createdAt    TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS fitnessEvents (
     id                    TEXT PRIMARY KEY,
     name                  TEXT NOT NULL,

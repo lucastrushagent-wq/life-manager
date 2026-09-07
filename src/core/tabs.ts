@@ -21,6 +21,7 @@ import { mentalHealthTab } from '../modules/mental-health'
 import { creativityTab } from '../modules/creativity'
 import { serviceProvidersTab } from '../modules/service-providers'
 import { fitnessEventsTab } from '../modules/fitness-events'
+import { technologyTab } from '../modules/technology'
 
 export interface TabConfig {
   id: string
@@ -62,5 +63,6 @@ export const tabs: TabConfig[] = [
   // Household
   { ...shoppingTab,        group: 'Household' },
   { ...homeTab,            group: 'Household' },
+  { ...technologyTab,      group: 'Household' },
   { ...serviceProvidersTab, group: 'Household' },
 ]

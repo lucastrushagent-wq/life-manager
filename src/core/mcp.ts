@@ -20,6 +20,7 @@ import { mentalHealthTools } from '../modules/mental-health/tools'
 import { creativityTools } from '../modules/creativity/tools'
 import { serviceProviderTools } from '../modules/service-providers/tools'
 import { fitnessEventsTools } from '../modules/fitness-events/tools'
+import { technologyTools } from '../modules/technology/tools'
 
 export interface McpTool {
   name: string
@@ -50,4 +51,5 @@ export const mcpTools: McpTool[] = [
   ...creativityTools,
   ...serviceProviderTools,
   ...fitnessEventsTools,
+  ...technologyTools,
 ]
