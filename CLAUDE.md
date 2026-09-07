@@ -139,17 +139,17 @@ agents bypass it.
 
 ## Tabs
 
-21 tabs. Two standalone, the rest grouped via `TAB_GROUPS` in `src/core/tabs.ts`.
+22 tabs. Two standalone, the rest grouped via `TAB_GROUPS` in `src/core/tabs.ts`.
 
-| Group          | Tabs                                                    |
-|----------------|---------------------------------------------------------|
-| *(standalone)* | Vision, To-Do                                           |
-| Money          | Finance, Investments                                    |
-| Relationships  | CRM, Lucie, Tweed                                       |
-| Health & Body  | Health, Fitness, Mental Health\*, Aesthetics            |
-| Career         | Professional, Learning\*                                |
-| Life           | Spirituality\*, Creativity\*, Social\*, Events, Travel\* |
-| Household      | Shopping, Home\*, Service Providers                     |
+| Group          | Tabs                                                            |
+|----------------|-----------------------------------------------------------------|
+| *(standalone)* | Vision, To-Do                                                   |
+| Money          | Finance, Investments                                            |
+| Relationships  | CRM, Lucie, Tweed                                               |
+| Health & Body  | Health, Fitness, Mental Health\*, Aesthetics, Fitness Events    |
+| Career         | Professional, Learning\*                                        |
+| Life           | Spirituality\*, Creativity\*, Social\*, Events, Travel\*         |
+| Household      | Shopping, Home\*, Service Providers                             |
 
 \* placeholder
 
@@ -172,6 +172,12 @@ agents bypass it.
 - **Events** — Upcoming + Goal list. `annual` flags yearly recurrence;
   `ticketsOnSaleDate` drives an on-sale countdown and
   `GET /api/events/on-sale?days=N`, which excludes already-confirmed events.
+- **Fitness Events** — the Events pattern applied to races: same Upcoming + Goal
+  split and `annual` flag, but registration windows instead of ticket sales
+  (`registrationOpensDate` / `registrationClosesDate`), plus `distance`,
+  `goalTime` and `resultTime`. `GET /api/fitness-events/open?days=N` returns races
+  to enter, tagged `open_now` / `upcoming` / `closed`, excluding anything already
+  `registered` or `completed`.
 
 ---
 

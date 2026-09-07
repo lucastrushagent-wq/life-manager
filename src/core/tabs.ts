@@ -20,6 +20,7 @@ import { socialTab } from '../modules/social'
 import { mentalHealthTab } from '../modules/mental-health'
 import { creativityTab } from '../modules/creativity'
 import { serviceProvidersTab } from '../modules/service-providers'
+import { fitnessEventsTab } from '../modules/fitness-events'
 
 export interface TabConfig {
   id: string
@@ -48,6 +49,7 @@ export const tabs: TabConfig[] = [
   { ...fitnessTab,      group: 'Health & Body' },
   { ...mentalHealthTab, group: 'Health & Body' },
   { ...aestheticsTab,   group: 'Health & Body' },
+  { ...fitnessEventsTab, group: 'Health & Body' },
   // Career
   { ...professionalTab, group: 'Career' },
   { ...learningTab,     group: 'Career' },

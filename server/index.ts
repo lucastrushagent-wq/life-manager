@@ -21,6 +21,7 @@ import professionalRouter from './routes/professional.js'
 import eventsRouter from './routes/events.js'
 import ynabRouter from './routes/ynab.js'
 import serviceProvidersRouter from './routes/serviceProviders.js'
+import fitnessEventsRouter from './routes/fitnessEvents.js'
 import { startCronJobs } from './cron.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -69,6 +70,7 @@ app.use('/api/professional', professionalRouter)
 app.use('/api/events', eventsRouter)
 app.use('/api/ynab', ynabRouter)
 app.use('/api/service-providers', serviceProvidersRouter)
+app.use('/api/fitness-events', fitnessEventsRouter)
 
 if (isProd) {
   const distDir = path.join(__dirname, '..', 'dist')

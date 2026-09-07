@@ -363,6 +363,29 @@ db.exec(`
     updatedAt TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS fitnessEvents (
+    id                    TEXT PRIMARY KEY,
+    name                  TEXT NOT NULL,
+    type                  TEXT NOT NULL DEFAULT 'upcoming',
+    date                  TEXT,
+    endDate               TEXT,
+    venue                 TEXT,
+    location              TEXT,
+    category              TEXT NOT NULL DEFAULT 'other',
+    status                TEXT NOT NULL DEFAULT 'interested',
+    url                   TEXT,
+    price                 REAL,
+    distance              TEXT,
+    goalTime              TEXT,
+    resultTime            TEXT,
+    alertEnabled          INTEGER NOT NULL DEFAULT 0,
+    annual                INTEGER NOT NULL DEFAULT 0,
+    registrationOpensDate TEXT,
+    registrationClosesDate TEXT,
+    notes                 TEXT,
+    createdAt             TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS serviceProviders (
     id            TEXT PRIMARY KEY,
     name          TEXT NOT NULL,
