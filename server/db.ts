@@ -363,6 +363,86 @@ db.exec(`
     updatedAt TEXT NOT NULL
   );
 
+  -- Tweed: single-row care profile, keyed on the constant id 'main'
+  CREATE TABLE IF NOT EXISTS tweedProfile (
+    id                TEXT PRIMARY KEY,
+    breed             TEXT,
+    dateOfBirth       TEXT,
+    weightKg          REAL,
+    colour            TEXT,
+    microchipNumber   TEXT,
+    desexed           INTEGER NOT NULL DEFAULT 0,
+    -- Food
+    foodBrand         TEXT,
+    foodAmount        TEXT,
+    foodLocation      TEXT,
+    feedingNotes      TEXT,
+    treats            TEXT,
+    -- Safety
+    allergies         TEXT,
+    currentMedications TEXT,
+    -- Day-to-day care
+    toys              TEXT,
+    walkRoutine       TEXT,
+    toiletRoutine     TEXT,
+    sleepRoutine      TEXT,
+    behaviourNotes    TEXT,
+    commands          TEXT,
+    houseRules        TEXT,
+    -- Contacts
+    emergencyContactName  TEXT,
+    emergencyContactPhone TEXT,
+    vetName           TEXT,
+    vetPhone          TEXT,
+    vetAddress        TEXT,
+    afterHoursVetName  TEXT,
+    afterHoursVetPhone TEXT,
+    updatedAt         TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS tweedSchedule (
+    id        TEXT PRIMARY KEY,
+    time      TEXT NOT NULL,
+    activity  TEXT NOT NULL DEFAULT 'other',
+    title     TEXT NOT NULL,
+    details   TEXT,
+    createdAt TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS tweedMedical (
+    id                 TEXT PRIMARY KEY,
+    date               TEXT NOT NULL,
+    type               TEXT NOT NULL DEFAULT 'checkup',
+    title              TEXT NOT NULL,
+    description        TEXT,
+    vet                TEXT,
+    cost               REAL,
+    followUpDate       TEXT,
+    claimStatus        TEXT NOT NULL DEFAULT 'not_submitted',
+    amountClaimed      REAL,
+    amountReimbursed   REAL,
+    claimSubmittedDate TEXT,
+    claimNotes         TEXT,
+    notes              TEXT,
+    createdAt          TEXT NOT NULL
+  );
+
+  -- Tweed: single-row insurance policy, keyed on the constant id 'main'
+  CREATE TABLE IF NOT EXISTS tweedInsurance (
+    id                TEXT PRIMARY KEY,
+    provider          TEXT,
+    policyNumber      TEXT,
+    annualPremium     REAL,
+    excess            REAL,
+    reimbursementRate REAL,
+    annualLimit       REAL,
+    renewalDate       TEXT,
+    contactPhone      TEXT,
+    portalUrl         TEXT,
+    coverageNotes     TEXT,
+    updatedAt         TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS techDevices (
     id             TEXT PRIMARY KEY,
     name           TEXT NOT NULL,

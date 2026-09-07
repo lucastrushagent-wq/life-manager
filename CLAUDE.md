@@ -174,6 +174,16 @@ agents bypass it.
 - **Service Providers** — doctor, dentist, hairdresser, trades etc. The
   `preferences` field is freeform "my usual" text an agent reads before booking.
   Optional `frequencyDays` drives a due/overdue indicator.
+- **Tweed** — sub-tabs Day-to-day and Vet & Insurance. Day-to-day is a sitter
+  handover sheet: a single-row care profile (allergies, food, treats, toys,
+  walk/toilet/sleep routines, behaviour, house rules, vet and after-hours
+  contacts) plus a time-ordered daily schedule. Allergies render as a red banner
+  because getting that wrong hurts the dog. `PUT /api/tweed/profile` is a partial
+  save — fields absent from the body keep their stored value.
+  Vet & Insurance embeds claim tracking on each medical record rather than using a
+  separate claims table, so one vet visit is one row.
+  `GET /api/tweed/handover` returns profile + schedule in one call;
+  `GET /api/tweed/claims/summary` gives spend vs. rebates.
 - **Events** — Upcoming + Goal list. `annual` flags yearly recurrence;
   `ticketsOnSaleDate` drives an on-sale countdown and
   `GET /api/events/on-sale?days=N`, which excludes already-confirmed events.
