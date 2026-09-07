@@ -17,6 +17,15 @@ export const eventsTools: McpTool[] = [
     handler: async () => eventsService.getAlerts(),
   },
   {
+    name: 'events_on_sale',
+    description:
+      'List events whose tickets are already on sale, or go on sale within the given number of days ' +
+      '(default 30), and which have not been booked yet. Each result carries onSaleStatus: ' +
+      '"on_sale_now" means act immediately. This is the list to check when asked what tickets to buy.',
+    inputSchema: z.object({ days: z.number().optional() }),
+    handler: async (input) => eventsService.getOnSale((input as { days?: number }).days ?? 30),
+  },
+  {
     name: 'events_create',
     description: 'Add an event to upcoming or goal list',
     inputSchema: CreateEventSchema,

@@ -22,6 +22,10 @@ export const eventsService = {
   getAlerts(): Promise<CalendarEvent[]> {
     return req<CalendarEvent[]>(`${BASE}/alerts`)
   },
+  /** Events already on sale, or going on sale within `days`, that are not yet confirmed. */
+  getOnSale(days = 30): Promise<(CalendarEvent & { onSaleStatus: 'on_sale_now' | 'upcoming' })[]> {
+    return req(`${BASE}/on-sale?days=${days}`)
+  },
   create(input: z.infer<typeof CreateEventSchema>): Promise<CalendarEvent> {
     return req<CalendarEvent>(BASE, { method: 'POST', ...json(input) })
   },

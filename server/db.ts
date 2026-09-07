@@ -495,6 +495,11 @@ if (!sessionCols.includes('avgVerticalOscillation')) db.exec("ALTER TABLE fitnes
 if (!sessionCols.includes('avgGroundContactMs'))     db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgGroundContactMs REAL")
 if (!sessionCols.includes('avgStrideLength'))        db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgStrideLength REAL")
 
+// Events migrations
+const eventCols = (db.prepare("PRAGMA table_info(calendarEvents)").all() as { name: string }[]).map(c => c.name)
+if (!eventCols.includes('annual')) db.exec("ALTER TABLE calendarEvents ADD COLUMN annual INTEGER NOT NULL DEFAULT 0")
+if (!eventCols.includes('ticketsOnSaleDate')) db.exec("ALTER TABLE calendarEvents ADD COLUMN ticketsOnSaleDate TEXT")
+
 // YNAB integration migrations
 const financeAccountColNames = (db.prepare("PRAGMA table_info(financeAccounts)").all() as { name: string }[]).map(c => c.name)
 if (!financeAccountColNames.includes('ynabAccountId')) db.exec("ALTER TABLE financeAccounts ADD COLUMN ynabAccountId TEXT")

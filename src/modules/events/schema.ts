@@ -17,6 +17,8 @@ export const CalendarEventSchema = z.object({
   url: z.string().optional(),
   price: z.number().optional(),
   alertEnabled: z.boolean(),
+  annual: z.boolean(),
+  ticketsOnSaleDate: z.string().optional(),
   notes: z.string().optional(),
   createdAt: z.string(),
 }) satisfies z.ZodType<CalendarEvent>

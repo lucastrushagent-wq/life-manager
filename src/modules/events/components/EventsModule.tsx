@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Bell, BellOff, ExternalLink, Pencil, Trash2, Check, CalendarDays, Star } from 'lucide-react'
+import { Plus, Bell, BellOff, ExternalLink, Pencil, Trash2, Check, CalendarDays, Star, Repeat, Ticket } from 'lucide-react'
 import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useEventsStore } from '../store'
 import { EVENT_CATEGORIES, EVENT_STATUSES } from '../schema'
@@ -68,6 +68,26 @@ function daysUntil(date?: string): string {
 
 // ── Blank form state ──────────────────────────────────────────────────────────
 
+/**
+ * On-sale state for an event, or null when no on-sale date is set.
+ * `days` is negative once the date has passed.
+ */
+function onSaleInfo(event: CalendarEvent): { days: number; onSaleNow: boolean } | null {
+  if (!event.ticketsOnSaleDate) return null
+  const today = new Date().toISOString().slice(0, 10)
+  const days = Math.round(
+    (new Date(event.ticketsOnSaleDate + 'T00:00:00').getTime() - new Date(today + 'T00:00:00').getTime()) / 86400000
+  )
+  return { days, onSaleNow: days <= 0 }
+}
+
+function onSaleLabel(days: number): string {
+  if (days < 0) return 'On sale now'
+  if (days === 0) return 'On sale today'
+  if (days === 1) return 'On sale tomorrow'
+  return `On sale in ${days}d`
+}
+
 function blankForm(type: EventType) {
   return {
     name: '',
@@ -81,6 +101,8 @@ function blankForm(type: EventType) {
     url: '',
     price: '',
     alertEnabled: false,
+    annual: false,
+    ticketsOnSaleDate: '',
     notes: '',
   }
 }
@@ -164,6 +186,19 @@ function EventForm({ initial, onSave, onCancel }: {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Tickets on sale</label>
+          <input type="date" value={f.ticketsOnSaleDate} onChange={e => set('ticketsOnSaleDate', e.target.value)}
+            className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 text-gray-600" />
+        </div>
+        <label className="flex items-end gap-2 cursor-pointer select-none pb-1.5">
+          <input type="checkbox" checked={f.annual} onChange={e => set('annual', e.target.checked)} className="rounded" />
+          <Repeat className="w-4 h-4 text-teal-500" />
+          <span className="text-sm text-gray-700">Recurs annually</span>
+        </label>
+      </div>
+
       <textarea
         placeholder="Notes"
         value={f.notes}
@@ -215,6 +250,11 @@ function GoalCard({ event, onEdit, onDelete, onToggleAlert }: {
             <span className={`text-xs px-1.5 py-0.5 rounded-full ${STATUS_COLORS[event.status]}`}>
               {STATUS_LABELS[event.status]}
             </span>
+            {event.annual && (
+              <span className="flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-700">
+                <Repeat className="w-2.5 h-2.5" /> Annual
+              </span>
+            )}
           </div>
           {(event.venue || event.location) && (
             <p className="text-xs text-gray-400 mt-0.5">
@@ -257,6 +297,23 @@ function GoalCard({ event, onEdit, onDelete, onToggleAlert }: {
       {event.price !== undefined && (
         <p className="text-xs text-gray-500">Expected: ${event.price.toLocaleString()}</p>
       )}
+      {(() => {
+        const sale = onSaleInfo(event)
+        if (!sale) return null
+        return (
+          <div className={`flex items-center gap-1.5 text-xs rounded px-2 py-1 ${
+            sale.onSaleNow ? 'bg-emerald-50 text-emerald-700 font-medium'
+              : sale.days <= 14 ? 'bg-amber-50 text-amber-700'
+              : 'bg-gray-50 text-gray-500'
+          }`}>
+            <Ticket className="w-3 h-3 shrink-0" />
+            {onSaleLabel(sale.days)}
+            <span className="text-gray-400 ml-auto">
+              {new Date(event.ticketsOnSaleDate + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+            </span>
+          </div>
+        )
+      })()}
       {event.notes && <p className="text-xs text-gray-500 italic">{event.notes}</p>}
       {event.alertEnabled && (
         <div className="flex items-center gap-1.5 text-xs text-violet-600 bg-violet-50 rounded px-2 py-1">
@@ -281,7 +338,14 @@ function UpcomingRow({ event, onEdit, onDelete }: {
   return (
     <tr className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${past ? 'opacity-50' : ''}`}>
       <td className="px-4 py-3">
-        <div className="font-medium text-gray-800 text-sm">{event.name}</div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="font-medium text-gray-800 text-sm">{event.name}</span>
+          {event.annual && (
+            <span className="flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-700">
+              <Repeat className="w-2.5 h-2.5" /> Annual
+            </span>
+          )}
+        </div>
         {event.venue && <div className="text-xs text-gray-400">{event.venue}</div>}
       </td>
       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
@@ -350,6 +414,15 @@ export function EventsModule() {
 
   const alertCount = events.filter(e => e.type === 'goal' && e.alertEnabled).length
 
+  // Anything already on sale, or going on sale within 30 days, that is not yet confirmed
+  const onSaleSoon = events
+    .filter(e => e.status !== 'confirmed')
+    .map(event => ({ event, sale: onSaleInfo(event) }))
+    .filter((x): x is { event: CalendarEvent; sale: { days: number; onSaleNow: boolean } } =>
+      x.sale !== null && x.sale.days <= 30)
+    .sort((a, b) => a.sale.days - b.sale.days)
+    .map(({ event, sale }) => ({ event, days: sale.days, onSaleNow: sale.onSaleNow }))
+
   async function handleSave(f: FormState) {
     const payload = {
       name: f.name.trim(),
@@ -363,6 +436,8 @@ export function EventsModule() {
       url: f.url.trim() || undefined,
       price: f.price !== '' ? Number(f.price) : undefined,
       alertEnabled: f.alertEnabled,
+      annual: f.annual,
+      ticketsOnSaleDate: f.ticketsOnSaleDate || undefined,
       notes: f.notes.trim() || undefined,
     }
     if (editingId) {
@@ -392,6 +467,8 @@ export function EventsModule() {
       url: event.url ?? '',
       price: event.price !== undefined ? String(event.price) : '',
       alertEnabled: event.alertEnabled,
+      annual: event.annual,
+      ticketsOnSaleDate: event.ticketsOnSaleDate ?? '',
       notes: event.notes ?? '',
     }
   }
@@ -445,6 +522,37 @@ export function EventsModule() {
       </div>
 
       <PhilosophyBox moduleId="events" />
+
+      {/* Tickets on sale now / soon */}
+      {onSaleSoon.length > 0 && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Ticket className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-semibold text-amber-800">Tickets on sale</span>
+          </div>
+          <div className="space-y-1">
+            {onSaleSoon.map(({ event, days, onSaleNow }) => (
+              <div key={event.id} className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-gray-700 truncate">
+                  {event.name}
+                  {event.venue && <span className="text-gray-400 ml-2 text-xs">{event.venue}</span>}
+                </span>
+                <span className="flex items-center gap-2 shrink-0">
+                  <span className={`text-xs ${onSaleNow ? 'text-emerald-600 font-medium' : 'text-amber-600'}`}>
+                    {onSaleLabel(days)}
+                  </span>
+                  {event.url && (
+                    <a href={event.url} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-0.5">
+                      Book <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Add form */}
       {showForm && (
