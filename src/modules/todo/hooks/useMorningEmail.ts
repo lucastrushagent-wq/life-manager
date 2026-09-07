@@ -7,7 +7,7 @@ export function useMorningEmail() {
   const [schedule, setSchedule] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/email/status')
+    fetch('/api/email/status')
       .then(r => r.json())
       .then(data => {
         if (!data.configured) setStatus('unconfigured')
@@ -20,7 +20,7 @@ export function useMorningEmail() {
     if (status === 'sending') return
     setStatus('sending')
     try {
-      const res = await fetch('http://localhost:3001/api/email/send-now', { method: 'POST' })
+      const res = await fetch('/api/email/send-now', { method: 'POST' })
       const data = await res.json()
       setStatus(data.ok ? 'sent' : 'error')
       if (data.ok) setTimeout(() => setStatus('idle'), 3000)

@@ -1,6 +1,6 @@
 import type { HealthMetricEntry, BloodWorkEntry, Medication, MedicalHistoryEntry } from './types'
 
-const BASE = 'http://localhost:3001/api/health'
+const BASE = '/api/health'
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`)

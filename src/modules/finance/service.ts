@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { FinanceAccount, NetWorthSnapshot, NetWorthTarget } from './types'
 import { CreateFinanceAccountSchema, CreateNetWorthTargetSchema } from './schema'
 
-const BASE = 'http://localhost:3001/api/finance/accounts'
+const BASE = '/api/finance/accounts'
 
 export const financeService = {
   async getAll(): Promise<FinanceAccount[]> {

@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { ServiceProvider } from './types'
 import { CreateServiceProviderSchema } from './schema'
 
-const BASE = 'http://localhost:3001/api/service-providers'
+const BASE = '/api/service-providers'
 
 export type CreateProviderData = z.infer<typeof CreateServiceProviderSchema>
 

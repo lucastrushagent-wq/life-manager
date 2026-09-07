@@ -1,6 +1,6 @@
 import type { ShoppingStore, ShoppingItem } from './types'
 
-const BASE = 'http://localhost:3001/api/shopping'
+const BASE = '/api/shopping'
 
 export type CreateItemData = Omit<ShoppingItem, 'id' | 'storeId' | 'checked' | 'createdAt'>
 
