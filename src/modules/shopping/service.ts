@@ -4,6 +4,9 @@ const BASE = 'http://localhost:3001/api/shopping'
 
 export type CreateItemData = Omit<ShoppingItem, 'id' | 'storeId' | 'checked' | 'createdAt'>
 
+/** A preference item annotated with the store it belongs to. */
+export type PreferenceItem = ShoppingItem & { store?: string }
+
 export const shoppingService = {
   async getStores(): Promise<ShoppingStore[]> {
     const res = await fetch(`${BASE}/stores`)
@@ -60,5 +63,13 @@ export const shoppingService = {
   async clearChecked(storeId: string): Promise<void> {
     const res = await fetch(`${BASE}/stores/${storeId}/checked`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Failed to clear checked items')
+  },
+
+  /** Look up standing preferences across all stores, optionally filtered by name. */
+  async getPreferences(query?: string): Promise<PreferenceItem[]> {
+    const qs = query ? `?q=${encodeURIComponent(query)}` : ''
+    const res = await fetch(`${BASE}/preferences${qs}`)
+    if (!res.ok) throw new Error('Failed to fetch preferences')
+    return res.json()
   },
 }

@@ -18,5 +18,9 @@ export interface ShoppingItem {
   frequency?: ShoppingFrequency
   storeCode?: string
   url?: string
+  /** The brand/variant always bought for this item, e.g. "Kirkland Signature 30-roll" */
+  preferredBrand?: string
+  /** Standing preference — survives "clear checked" so the brand is never lost */
+  isPreference: boolean
   createdAt: string
 }

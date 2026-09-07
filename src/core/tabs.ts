@@ -19,6 +19,7 @@ import { travelTab } from '../modules/travel'
 import { socialTab } from '../modules/social'
 import { mentalHealthTab } from '../modules/mental-health'
 import { creativityTab } from '../modules/creativity'
+import { serviceProvidersTab } from '../modules/service-providers'
 
 export interface TabConfig {
   id: string
@@ -57,6 +58,7 @@ export const tabs: TabConfig[] = [
   { ...eventsTab,       group: 'Life' },
   { ...travelTab,       group: 'Life' },
   // Household
-  { ...shoppingTab,     group: 'Household' },
-  { ...homeTab,         group: 'Household' },
+  { ...shoppingTab,        group: 'Household' },
+  { ...homeTab,            group: 'Household' },
+  { ...serviceProvidersTab, group: 'Household' },
 ]

@@ -16,6 +16,15 @@ export const shoppingTools: McpTool[] = [
     handler: async (input) => shoppingService.getItems((input as { storeId: string }).storeId),
   },
   {
+    name: 'shopping_find_preference',
+    description:
+      'Look up the preferred brand/variant for a product by name, e.g. "toilet paper" returns ' +
+      '"Kirkland Signature 30-roll" and the store it is bought from. Call this before adding a ' +
+      'generic item to a cart so the right brand is chosen. Omit the query to list every preference.',
+    inputSchema: z.object({ query: z.string().optional() }),
+    handler: async (input) => shoppingService.getPreferences((input as { query?: string }).query),
+  },
+  {
     name: 'shopping_add_item',
     description: 'Add an item to a store\'s shopping list',
     inputSchema: z.object({
@@ -23,10 +32,15 @@ export const shoppingTools: McpTool[] = [
       name: z.string(),
       quantity: z.string().optional(),
       notes: z.string().optional(),
+      preferredBrand: z.string().optional(),
+      isPreference: z.boolean().optional(),
     }),
     handler: async (input) => {
-      const { storeId, ...rest } = input as { storeId: string; name: string; quantity?: string; notes?: string }
-      return shoppingService.addItem(storeId, { ...rest, recurring: false })
+      const { storeId, isPreference, ...rest } = input as {
+        storeId: string; name: string; quantity?: string; notes?: string
+        preferredBrand?: string; isPreference?: boolean
+      }
+      return shoppingService.addItem(storeId, { ...rest, recurring: false, isPreference: isPreference ?? false })
     },
   },
   {

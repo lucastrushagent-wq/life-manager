@@ -8,6 +8,7 @@ interface ItemRow {
   id: string; storeId: string; name: string
   quantity: string | null; notes: string | null; checked: number
   recurring: number; frequency: string | null; storeCode: string | null; url: string | null
+  preferredBrand: string | null; isPreference: number
   createdAt: string
 }
 
@@ -26,6 +27,8 @@ function toItem(r: ItemRow) {
     frequency: r.frequency ?? undefined,
     storeCode: r.storeCode ?? undefined,
     url: r.url ?? undefined,
+    preferredBrand: r.preferredBrand ?? undefined,
+    isPreference: r.isPreference === 1,
     createdAt: r.createdAt,
   }
 }
@@ -62,16 +65,17 @@ router.get('/stores/:storeId/items', (req, res) => {
 })
 
 router.post('/stores/:storeId/items', (req, res) => {
-  const { name, quantity, notes, recurring, frequency, storeCode, url } = req.body
+  const { name, quantity, notes, recurring, frequency, storeCode, url, preferredBrand, isPreference } = req.body
   if (!name?.trim()) return res.status(400).json({ error: 'Name required' })
   const id = crypto.randomUUID()
   db.prepare(
-    'INSERT INTO shoppingItems (id, storeId, name, quantity, notes, checked, recurring, frequency, storeCode, url, createdAt) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)'
+    'INSERT INTO shoppingItems (id, storeId, name, quantity, notes, checked, recurring, frequency, storeCode, url, preferredBrand, isPreference, createdAt) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?)'
   ).run(
     id, req.params.storeId, name.trim(),
     quantity?.trim() || null, notes?.trim() || null,
     recurring ? 1 : 0, frequency?.trim() || null,
     storeCode?.trim() || null, url?.trim() || null,
+    preferredBrand?.trim() || null, isPreference ? 1 : 0,
     new Date().toISOString()
   )
   res.status(201).json(toItem(db.prepare('SELECT * FROM shoppingItems WHERE id=?').get(id) as ItemRow))
@@ -80,9 +84,9 @@ router.post('/stores/:storeId/items', (req, res) => {
 router.put('/items/:id', (req, res) => {
   const row = db.prepare('SELECT * FROM shoppingItems WHERE id=?').get(req.params.id) as ItemRow | undefined
   if (!row) return res.status(404).json({ error: 'Not found' })
-  const { name, quantity, notes, checked, recurring, frequency, storeCode, url } = req.body
+  const { name, quantity, notes, checked, recurring, frequency, storeCode, url, preferredBrand, isPreference } = req.body
   db.prepare(
-    'UPDATE shoppingItems SET name=?, quantity=?, notes=?, checked=?, recurring=?, frequency=?, storeCode=?, url=? WHERE id=?'
+    'UPDATE shoppingItems SET name=?, quantity=?, notes=?, checked=?, recurring=?, frequency=?, storeCode=?, url=?, preferredBrand=?, isPreference=? WHERE id=?'
   ).run(
     name ?? row.name,
     quantity !== undefined ? (quantity?.trim() || null) : row.quantity,
@@ -92,9 +96,28 @@ router.put('/items/:id', (req, res) => {
     frequency !== undefined ? (frequency?.trim() || null) : row.frequency,
     storeCode !== undefined ? (storeCode?.trim() || null) : row.storeCode,
     url !== undefined ? (url?.trim() || null) : row.url,
+    preferredBrand !== undefined ? (preferredBrand?.trim() || null) : row.preferredBrand,
+    isPreference !== undefined ? (isPreference ? 1 : 0) : row.isPreference,
     req.params.id
   )
   res.json(toItem(db.prepare('SELECT * FROM shoppingItems WHERE id=?').get(req.params.id) as ItemRow))
+})
+
+// Look up a preferred item by name across all stores — the lookup an agent makes
+// when told "add toilet paper to the Costco cart".
+router.get('/preferences', (req, res) => {
+  const { q } = req.query as Record<string, string>
+  let sql = `
+    SELECT i.*, s.name AS storeName
+    FROM shoppingItems i
+    LEFT JOIN shoppingStores s ON s.id = i.storeId
+    WHERE i.isPreference = 1
+  `
+  const params: string[] = []
+  if (q) { sql += ' AND LOWER(i.name) LIKE ?'; params.push(`%${q.toLowerCase()}%`) }
+  sql += ' ORDER BY i.name'
+  const rows = db.prepare(sql).all(...params) as (ItemRow & { storeName: string | null })[]
+  res.json(rows.map(r => ({ ...toItem(r), store: r.storeName ?? undefined })))
 })
 
 router.delete('/items/:id', (req, res) => {
@@ -103,7 +126,12 @@ router.delete('/items/:id', (req, res) => {
 })
 
 router.delete('/stores/:storeId/checked', (req, res) => {
-  db.prepare('DELETE FROM shoppingItems WHERE storeId=? AND checked=1').run(req.params.storeId)
+  // Preference items are a standing catalogue — clearing the trip unchecks them
+  // rather than deleting them, so the brand preference survives.
+  db.prepare('UPDATE shoppingItems SET checked=0 WHERE storeId=? AND checked=1 AND isPreference=1')
+    .run(req.params.storeId)
+  db.prepare('DELETE FROM shoppingItems WHERE storeId=? AND checked=1 AND isPreference=0')
+    .run(req.params.storeId)
   res.status(204).end()
 })
 

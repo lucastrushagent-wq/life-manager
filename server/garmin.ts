@@ -1,7 +1,13 @@
+// garmin-connect ships CommonJS with no `exports` map, so Node's ESM loader cannot
+// detect its named exports — `import { GarminConnect }` throws at load time and takes
+// the whole server down with it. Import the default and destructure instead.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — no type declarations for garmin-connect
-import { GarminConnect } from 'garmin-connect'
+import garminConnect from 'garmin-connect'
 import { db } from './db.js'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const { GarminConnect } = garminConnect as any
 
 function dateStr(d: Date) {
   return d.toISOString().split('T')[0]

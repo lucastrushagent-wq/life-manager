@@ -363,6 +363,26 @@ db.exec(`
     updatedAt TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS serviceProviders (
+    id            TEXT PRIMARY KEY,
+    name          TEXT NOT NULL,
+    category      TEXT NOT NULL DEFAULT 'other',
+    specialty     TEXT,
+    phone         TEXT,
+    email         TEXT,
+    website       TEXT,
+    bookingUrl    TEXT,
+    address       TEXT,
+    preferences   TEXT,
+    lastVisit     TEXT,
+    frequencyDays INTEGER,
+    typicalCost   REAL,
+    rating        INTEGER,
+    notes         TEXT,
+    archived      INTEGER NOT NULL DEFAULT 0,
+    createdAt     TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS ynabSyncLog (
     id                TEXT PRIMARY KEY,
     syncedAt          TEXT NOT NULL,
@@ -452,6 +472,9 @@ if (!shoppingItemCols.includes('recurring')) db.exec("ALTER TABLE shoppingItems 
 if (!shoppingItemCols.includes('frequency')) db.exec("ALTER TABLE shoppingItems ADD COLUMN frequency TEXT")
 if (!shoppingItemCols.includes('storeCode')) db.exec("ALTER TABLE shoppingItems ADD COLUMN storeCode TEXT")
 if (!shoppingItemCols.includes('url')) db.exec("ALTER TABLE shoppingItems ADD COLUMN url TEXT")
+// Preference fields — turn the shopping list into a standing preference catalogue
+if (!shoppingItemCols.includes('preferredBrand')) db.exec("ALTER TABLE shoppingItems ADD COLUMN preferredBrand TEXT")
+if (!shoppingItemCols.includes('isPreference')) db.exec("ALTER TABLE shoppingItems ADD COLUMN isPreference INTEGER NOT NULL DEFAULT 0")
 
 // Garmin sync migrations
 const healthMetricCols = (db.prepare("PRAGMA table_info(healthMetrics)").all() as { name: string }[]).map(c => c.name)

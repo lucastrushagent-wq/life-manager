@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, X, Check, RefreshCw, ExternalLink, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
+import { Plus, Trash2, X, Check, RefreshCw, ExternalLink, ChevronDown, ChevronUp, Pencil, Star } from 'lucide-react'
 import { PhilosophyBox } from '../../../core/PhilosophyBox'
 import { useShoppingStore } from '../store'
 import type { ShoppingFrequency, ShoppingItem } from '../types'
@@ -15,6 +15,7 @@ const FREQUENCY_LABELS: Record<ShoppingFrequency, string> = {
 const EMPTY_FORM: CreateItemData = {
   name: '', quantity: '', notes: '', recurring: false,
   frequency: undefined, storeCode: '', url: '',
+  preferredBrand: '', isPreference: false,
 }
 
 function itemToForm(item: ShoppingItem): CreateItemData {
@@ -26,6 +27,8 @@ function itemToForm(item: ShoppingItem): CreateItemData {
     frequency: item.frequency,
     storeCode: item.storeCode ?? '',
     url: item.url ?? '',
+    preferredBrand: item.preferredBrand ?? '',
+    isPreference: item.isPreference,
   }
 }
 
@@ -76,6 +79,8 @@ export function ShoppingModule() {
       notes: editForm.notes?.trim() || undefined,
       storeCode: editForm.storeCode?.trim() || undefined,
       url: editForm.url?.trim() || undefined,
+      preferredBrand: editForm.preferredBrand?.trim() || undefined,
+      isPreference: editForm.isPreference,
       recurring: editForm.recurring,
       frequency: editForm.recurring ? editForm.frequency : undefined,
     })
@@ -92,6 +97,7 @@ export function ShoppingModule() {
       notes: form.notes?.trim() || undefined,
       storeCode: form.storeCode?.trim() || undefined,
       url: form.url?.trim() || undefined,
+      preferredBrand: form.preferredBrand?.trim() || undefined,
       frequency: form.recurring ? form.frequency : undefined,
     })
     setForm(EMPTY_FORM)
@@ -114,9 +120,14 @@ export function ShoppingModule() {
         <div className="grid grid-cols-2 gap-2 mb-2">
           <input className={inputCls} placeholder="Item name" value={editForm.name} onChange={e => patchEdit({ name: e.target.value })} autoFocus />
           <input className={inputCls} placeholder="Qty" value={editForm.quantity ?? ''} onChange={e => patchEdit({ quantity: e.target.value })} />
+          <input className={`${inputCls} col-span-2`} placeholder='Preferred brand (e.g. "Kirkland Signature 30-roll")' value={editForm.preferredBrand ?? ''} onChange={e => patchEdit({ preferredBrand: e.target.value })} />
           <input className={inputCls} placeholder="Notes" value={editForm.notes ?? ''} onChange={e => patchEdit({ notes: e.target.value })} />
           <input className={inputCls} placeholder="Store code / SKU" value={editForm.storeCode ?? ''} onChange={e => patchEdit({ storeCode: e.target.value })} />
           <input className={`${inputCls} col-span-2`} placeholder="Product URL" value={editForm.url ?? ''} onChange={e => patchEdit({ url: e.target.value })} />
+          <label className="col-span-2 flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" checked={editForm.isPreference} onChange={e => patchEdit({ isPreference: e.target.checked })} className="rounded" />
+            Standing preference <span className="text-xs text-gray-400">— kept when the list is cleared</span>
+          </label>
           <div className="col-span-2 flex items-center gap-3">
             <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
               <input type="checkbox" checked={editForm.recurring} onChange={e => patchEdit({ recurring: e.target.checked, frequency: e.target.checked ? (editForm.frequency ?? 'monthly') : undefined })} className="rounded" />
@@ -200,9 +211,14 @@ export function ShoppingModule() {
             </div>
             {showMore && (
               <div className="grid grid-cols-2 gap-2 mb-2">
+                <input className={`${inputCls} col-span-2`} placeholder='Preferred brand (e.g. "Kirkland Signature 30-roll")' value={form.preferredBrand ?? ''} onChange={e => patch({ preferredBrand: e.target.value })} />
                 <input className={inputCls} placeholder="Notes" value={form.notes ?? ''} onChange={e => patch({ notes: e.target.value })} />
                 <input className={inputCls} placeholder="Store code / SKU" value={form.storeCode ?? ''} onChange={e => patch({ storeCode: e.target.value })} />
                 <input className={inputCls} placeholder="Product URL" value={form.url ?? ''} onChange={e => patch({ url: e.target.value })} />
+                <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+                  <input type="checkbox" checked={form.isPreference} onChange={e => patch({ isPreference: e.target.checked })} className="rounded" />
+                  Standing preference
+                </label>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
                     <input type="checkbox" checked={form.recurring} onChange={e => patch({ recurring: e.target.checked, frequency: e.target.checked ? (form.frequency ?? 'monthly') : undefined })} className="rounded" />
@@ -247,6 +263,11 @@ export function ShoppingModule() {
                           <span className="text-sm font-medium text-gray-800">{item.name}</span>
                           {item.quantity && <span className="text-xs text-gray-400">× {item.quantity}</span>}
                           {item.storeCode && <span className="text-xs font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{item.storeCode}</span>}
+                          {item.isPreference && (
+                            <span className="flex items-center gap-0.5 text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                              <Star className="w-2.5 h-2.5" /> Preference
+                            </span>
+                          )}
                           {item.recurring && (
                             <span className="flex items-center gap-0.5 text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
                               <RefreshCw className="w-2.5 h-2.5" />
@@ -254,6 +275,9 @@ export function ShoppingModule() {
                             </span>
                           )}
                         </div>
+                        {item.preferredBrand && (
+                          <div className="text-xs text-gray-500 mt-0.5">{item.preferredBrand}</div>
+                        )}
                         {(item.notes || item.url) && (
                           <div className="flex items-center gap-3 mt-0.5">
                             {item.notes && <span className="text-xs text-gray-400 italic">{item.notes}</span>}
@@ -285,7 +309,7 @@ export function ShoppingModule() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">In cart ({checked.length})</span>
-                <button onClick={() => clearChecked(activeStoreId)} className="text-xs text-gray-400 hover:text-red-500">Clear all</button>
+                <button onClick={() => clearChecked(activeStoreId)} title="Removes one-off items; standing preferences are just unchecked" className="text-xs text-gray-400 hover:text-red-500">Clear all</button>
               </div>
               <div className="rounded-lg border border-gray-100 overflow-hidden">
                 {checked.map((item, i) => (
