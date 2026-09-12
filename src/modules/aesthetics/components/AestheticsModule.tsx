@@ -518,7 +518,7 @@ function WardrobeForm({ onSave, onCancel }: {
         </div>
       </div>
       <div>
-        <label className="text-xs text-gray-500 mb-1 block">Image URL</label>
+        <label className="text-xs text-gray-500 mb-1 block">Product URL</label>
         <input className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 w-full" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://…" />
       </div>
       <div>
