@@ -49,7 +49,8 @@ export interface WardrobeItem {
   brand?: string
   status: WardrobeStatus
   notes?: string
-  imageUrl?: string
+  /** Link to the product page this item was (or would be) bought from */
+  productUrl?: string
   createdAt: string
 }
 

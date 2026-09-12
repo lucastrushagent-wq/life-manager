@@ -57,7 +57,7 @@ export const WardrobeItemSchema = z.object({
   brand: z.string().optional(),
   status: z.enum(['owned', 'wishlist']),
   notes: z.string().optional(),
-  imageUrl: z.string().optional(),
+  productUrl: z.string().optional(),
   createdAt: z.string(),
 }) satisfies z.ZodType<WardrobeItem>
 

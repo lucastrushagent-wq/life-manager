@@ -464,7 +464,7 @@ function WardrobeForm({ onSave, onCancel }: {
   const [brand, setBrand] = useState('')
   const [status, setStatus] = useState<WardrobeStatus>('owned')
   const [notes, setNotes] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
+  const [productUrl, setProductUrl] = useState('')
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -476,7 +476,7 @@ function WardrobeForm({ onSave, onCancel }: {
       brand: brand.trim() || undefined,
       status,
       notes: notes.trim() || undefined,
-      imageUrl: imageUrl.trim() || undefined,
+      productUrl: productUrl.trim() || undefined,
     })
   }
 
@@ -519,7 +519,7 @@ function WardrobeForm({ onSave, onCancel }: {
       </div>
       <div>
         <label className="text-xs text-gray-500 mb-1 block">Product URL</label>
-        <input className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 w-full" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://…" />
+        <input className="text-sm border border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-400 w-full" value={productUrl} onChange={e => setProductUrl(e.target.value)} placeholder="https://…" />
       </div>
       <div>
         <label className="text-xs text-gray-500 mb-1 block">Notes</label>
@@ -582,9 +582,6 @@ function WardrobeSection() {
         <div className="space-y-2">
           {sorted.map(w => (
             <div key={w.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-lg px-4 py-2.5 hover:border-gray-200 transition-colors">
-              {w.imageUrl && (
-                <img src={w.imageUrl} alt={w.name} className="w-10 h-10 rounded object-cover shrink-0" />
-              )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-sm text-gray-900">{w.name}</span>
@@ -596,6 +593,17 @@ function WardrobeSection() {
                 {w.notes && <p className="text-xs text-gray-500 mt-0.5 truncate">{w.notes}</p>}
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                {w.productUrl && (
+                  <a
+                    href={w.productUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open product page"
+                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium border border-blue-200 rounded px-2 py-0.5 hover:bg-blue-50 transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> Product
+                  </a>
+                )}
                 {w.status === 'wishlist' && (
                   <button
                     onClick={() => updateWardrobeItem(w.id, { status: 'owned' })}

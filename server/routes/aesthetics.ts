@@ -24,7 +24,7 @@ interface ScheduleRow {
 interface WardrobeRow {
   id: string; name: string; category: string; color: string | null
   brand: string | null; status: string; notes: string | null
-  imageUrl: string | null; createdAt: string
+  productUrl: string | null; createdAt: string
 }
 
 interface OutfitRow {
@@ -69,7 +69,7 @@ function toWardrobe(r: WardrobeRow) {
     id: r.id, name: r.name, category: r.category,
     color: r.color ?? undefined, brand: r.brand ?? undefined,
     status: r.status, notes: r.notes ?? undefined,
-    imageUrl: r.imageUrl ?? undefined, createdAt: r.createdAt,
+    productUrl: r.productUrl ?? undefined, createdAt: r.createdAt,
   }
 }
 
@@ -218,22 +218,22 @@ router.get('/wardrobe', (_req, res) => {
 })
 
 router.post('/wardrobe', (req, res) => {
-  const { name, category, color, brand, status, notes, imageUrl } = req.body
+  const { name, category, color, brand, status, notes, productUrl } = req.body
   if (!name?.trim()) return res.status(400).json({ error: 'Name required' })
   const id = crypto.randomUUID()
   db.prepare(
-    'INSERT INTO wardrobeItems (id, name, category, color, brand, status, notes, imageUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    'INSERT INTO wardrobeItems (id, name, category, color, brand, status, notes, productUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
   ).run(id, name.trim(), category || 'other', color?.trim() || null, brand?.trim() || null,
-    status || 'owned', notes?.trim() || null, imageUrl?.trim() || null, new Date().toISOString())
+    status || 'owned', notes?.trim() || null, productUrl?.trim() || null, new Date().toISOString())
   res.status(201).json(toWardrobe(db.prepare('SELECT * FROM wardrobeItems WHERE id=?').get(id) as WardrobeRow))
 })
 
 router.patch('/wardrobe/:id', (req, res) => {
   const row = db.prepare('SELECT * FROM wardrobeItems WHERE id=?').get(req.params.id) as WardrobeRow | undefined
   if (!row) return res.status(404).json({ error: 'Not found' })
-  const { name, category, color, brand, status, notes, imageUrl } = req.body
+  const { name, category, color, brand, status, notes, productUrl } = req.body
   db.prepare(
-    'UPDATE wardrobeItems SET name=?, category=?, color=?, brand=?, status=?, notes=?, imageUrl=? WHERE id=?'
+    'UPDATE wardrobeItems SET name=?, category=?, color=?, brand=?, status=?, notes=?, productUrl=? WHERE id=?'
   ).run(
     name ?? row.name,
     category ?? row.category,
@@ -241,7 +241,7 @@ router.patch('/wardrobe/:id', (req, res) => {
     brand !== undefined ? (brand?.trim() || null) : row.brand,
     status ?? row.status,
     notes !== undefined ? (notes?.trim() || null) : row.notes,
-    imageUrl !== undefined ? (imageUrl?.trim() || null) : row.imageUrl,
+    productUrl !== undefined ? (productUrl?.trim() || null) : row.productUrl,
     req.params.id
   )
   res.json(toWardrobe(db.prepare('SELECT * FROM wardrobeItems WHERE id=?').get(req.params.id) as WardrobeRow))

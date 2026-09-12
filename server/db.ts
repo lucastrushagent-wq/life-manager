@@ -314,10 +314,10 @@ db.exec(`
     category  TEXT NOT NULL DEFAULT 'other',
     color     TEXT,
     brand     TEXT,
-    status    TEXT NOT NULL DEFAULT 'owned',
-    notes     TEXT,
-    imageUrl  TEXT,
-    createdAt TEXT NOT NULL
+    status     TEXT NOT NULL DEFAULT 'owned',
+    notes      TEXT,
+    productUrl TEXT,
+    createdAt  TEXT NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS outfitIdeas (
@@ -629,6 +629,15 @@ if (!sessionCols.includes('lactateThresholdHr'))     db.exec("ALTER TABLE fitnes
 if (!sessionCols.includes('avgVerticalOscillation')) db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgVerticalOscillation REAL")
 if (!sessionCols.includes('avgGroundContactMs'))     db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgGroundContactMs REAL")
 if (!sessionCols.includes('avgStrideLength'))        db.exec("ALTER TABLE fitnessSessions ADD COLUMN avgStrideLength REAL")
+
+// Wardrobe: the field holds a link to the product page, not an image, so it was
+// renamed. RENAME COLUMN preserves existing values; the guard makes it a no-op on
+// a fresh database (where CREATE TABLE already made productUrl) and on reruns.
+// Note inspirationItems keeps its own imageUrl — that one really is an image.
+const wardrobeCols = (db.prepare("PRAGMA table_info(wardrobeItems)").all() as { name: string }[]).map(c => c.name)
+if (wardrobeCols.includes('imageUrl') && !wardrobeCols.includes('productUrl')) {
+  db.exec("ALTER TABLE wardrobeItems RENAME COLUMN imageUrl TO productUrl")
+}
 
 // Events migrations
 const eventCols = (db.prepare("PRAGMA table_info(calendarEvents)").all() as { name: string }[]).map(c => c.name)
