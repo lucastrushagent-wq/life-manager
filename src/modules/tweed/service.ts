@@ -1,3 +1,4 @@
+import { API_BASE } from '../../core/apiBase.js'
 import type { z } from 'zod'
 import type {
   TweedProfile, TweedScheduleItem, TweedMedicalRecord, TweedInsurance, ClaimSummary,
@@ -7,7 +8,7 @@ import type {
   CreateMedicalRecordSchema, UpdateMedicalRecordSchema,
 } from './schema'
 
-const BASE = '/api/tweed'
+const BASE = `${API_BASE}/api/tweed`
 
 async function req<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)

@@ -1,3 +1,4 @@
+import { API_BASE } from '../../core/apiBase.js'
 import type { z } from 'zod'
 import type { Device, TechSubscription } from './types'
 import type {
@@ -5,7 +6,7 @@ import type {
   CreateSubscriptionSchema, UpdateSubscriptionSchema,
 } from './schema'
 
-const BASE = '/api/technology'
+const BASE = `${API_BASE}/api/technology`
 
 async function req<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)

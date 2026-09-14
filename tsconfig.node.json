@@ -2,7 +2,11 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "target": "ES2022",
-    "lib": ["ES2023"],
+    // DOM is here for types only (noEmit). server/mcp.ts imports the module
+    // service.ts files, which are shared with the browser and are written against
+    // DOM fetch/Response — without it, res.json() resolves to unknown under the
+    // Node undici types and every service fails to type-check.
+    "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",

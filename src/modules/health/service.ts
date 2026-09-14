@@ -1,6 +1,7 @@
+import { API_BASE } from '../../core/apiBase.js'
 import type { HealthMetricEntry, BloodWorkEntry, Medication, MedicalHistoryEntry } from './types'
 
-const BASE = '/api/health'
+const BASE = `${API_BASE}/api/health`
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`)

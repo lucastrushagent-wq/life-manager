@@ -1,8 +1,9 @@
+import { API_BASE } from '../../core/apiBase.js'
 import type { FitnessEvent } from './types'
 import type { z } from 'zod'
 import type { CreateFitnessEventSchema, UpdateFitnessEventSchema } from './schema'
 
-const BASE = '/api/fitness-events'
+const BASE = `${API_BASE}/api/fitness-events`
 
 async function req<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)

@@ -96,6 +96,7 @@ server/cron.ts         Scheduled jobs
 server/routes/*.ts     One router per domain, mounted at /api/<name>
 server/garmin.ts       Garmin Connect sync
 server/ynab.ts         YNAB sync
+server/mcp.ts          stdio MCP server (npm run mcp)
 server/email*.ts       Morning briefing email
 ```
 
@@ -110,10 +111,16 @@ UI Component
           → Express route → SQLite
 
 AI Agent
-  → MCP tool (tools.ts)
-    → service.ts
-      → same path
+  → stdio MCP server (server/mcp.ts)
+    → MCP tool (tools.ts)
+      → service.ts
+        → fetch ${API_BASE}/api/...   ← absolute in Node, relative in the browser
+          → Express route → SQLite
 ```
+
+Only the Express process opens SQLite. Agents go over HTTP to the loopback port,
+never at the file — that keeps route logic and Zod validation in play, and avoids
+two writers on one database file.
 
 `service.ts` is the single owner of all data operations. Neither the UI nor
 agents bypass it.
@@ -127,10 +134,13 @@ agents bypass it.
   (`z.infer<>`); existing modules keep `types.ts` separate and assert with
   `satisfies z.ZodType<T>` — follow the pattern already in the module you're editing
 - **service.ts is the data boundary** — all reads and writes go through it
-- **API URLs must be relative** — `const BASE = '/api/thing'`, never
-  `http://localhost:3001/...`. An absolute localhost URL works on the host machine
-  but breaks for every remote client: the phone resolves `localhost` to itself.
-  This has bitten this project before.
+- **API URLs go through `API_BASE`** — `const BASE = \`${API_BASE}/api/thing\``
+  (`src/core/apiBase.ts`), never a bare `'/api/thing'` and never a hardcoded
+  `http://localhost:3001/...`. It is empty in the browser, so URLs stay relative:
+  an absolute localhost URL breaks every remote client, because the phone resolves
+  `localhost` to itself. In Node it must be absolute or `fetch` throws "Failed to
+  parse URL" — `server/mcp.ts` sets `LIFE_MANAGER_API` for exactly this reason.
+  Both halves have bitten this project.
 - **The DB is opened by more than one process** — the server, plus any local
   agent. It runs in WAL mode (set in `db.ts`) so readers and one writer can
   proceed concurrently; the default rollback journal locks the whole file and
@@ -206,6 +216,39 @@ agents bypass it.
   `goalTime` and `resultTime`. `GET /api/fitness-events/open?days=N` returns races
   to enter, tagged `open_now` / `upcoming` / `closed`, excluding anything already
   `registered` or `completed`.
+
+---
+
+## MCP server
+
+`server/mcp.ts` exposes the `mcpTools` registry over stdio, so an agent on the
+same machine gets the tools as native calls. Run it with `npm run mcp`.
+
+```jsonc
+// Claude Desktop config — the server must run on the same machine as the API
+{
+  "mcpServers": {
+    "life-manager": {
+      "command": "npx",
+      "args": ["tsx", "/ABSOLUTE/PATH/TO/life-manager/server/mcp.ts"],
+      "env": { "MCP_ALLOW_WRITES": "false" }
+    }
+  }
+}
+```
+
+| Env | Default | Purpose |
+|---|---|---|
+| `LIFE_MANAGER_API` | `http://127.0.0.1:3002` | API base; the loopback port that skips Basic Auth |
+| `MCP_ALLOW_WRITES` | unset (read-only) | `true` exposes mutating tools too |
+
+**Writes are opt-in.** A tool counts as a read only if its name matches a known
+read shape (`_list`, `_get`, `_find`, `_summary`, plus a small explicit set);
+anything unrecognised is withheld rather than assumed safe. 46 of 116 tools are
+reads. A withheld tool returns a message saying so, distinct from "unknown tool".
+
+**stdout is the protocol channel** — log to stderr only. A stray `console.log`
+in anything this server imports will corrupt the stream.
 
 ---
 

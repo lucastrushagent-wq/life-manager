@@ -1,8 +1,9 @@
+import { API_BASE } from '../../core/apiBase.js'
 import { z } from 'zod'
 import type { Contact, Interaction, KeyDate } from './types'
 import { CreateContactSchema, CreateInteractionSchema, CreateKeyDateSchema } from './schema'
 
-const BASE = '/api/contacts'
+const BASE = `${API_BASE}/api/contacts`
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)

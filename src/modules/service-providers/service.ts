@@ -1,8 +1,9 @@
+import { API_BASE } from '../../core/apiBase.js'
 import { z } from 'zod'
 import type { ServiceProvider } from './types'
 import { CreateServiceProviderSchema } from './schema'
 
-const BASE = '/api/service-providers'
+const BASE = `${API_BASE}/api/service-providers`
 
 export type CreateProviderData = z.infer<typeof CreateServiceProviderSchema>
 

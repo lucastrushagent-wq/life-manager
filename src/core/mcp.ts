@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { todoTools } from '../modules/todo/tools'
 import { crmTools } from '../modules/crm/tools'
 import { financeTools } from '../modules/finance/tools'
+import { investmentsTools } from '../modules/investments/tools'
 import { tweedTools } from '../modules/tweed/tools'
 import { lucieTools } from '../modules/lucie/tools'
 import { shoppingTools } from '../modules/shopping/tools'
@@ -33,6 +34,7 @@ export const mcpTools: McpTool[] = [
   ...todoTools,
   ...crmTools,
   ...financeTools,
+  ...investmentsTools,
   ...tweedTools,
   ...lucieTools,
   ...shoppingTools,

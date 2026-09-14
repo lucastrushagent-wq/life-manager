@@ -1,6 +1,7 @@
+import { API_BASE } from '../../core/apiBase.js'
 import type { ShoppingStore, ShoppingItem } from './types'
 
-const BASE = '/api/shopping'
+const BASE = `${API_BASE}/api/shopping`
 
 export type CreateItemData = Omit<ShoppingItem, 'id' | 'storeId' | 'checked' | 'createdAt'>
 

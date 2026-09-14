@@ -9,9 +9,11 @@
     "dev:server": "tsx watch server/index.ts",
     "build": "tsc -b && vite build",
     "start": "NODE_ENV=production tsx server/index.ts",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "mcp": "tsx server/mcp.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@react-oauth/google": "^0.13.4",
     "better-sqlite3": "^12.8.0",
     "cors": "^2.8.6",

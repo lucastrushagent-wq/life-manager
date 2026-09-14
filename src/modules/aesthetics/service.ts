@@ -1,3 +1,4 @@
+import { API_BASE } from '../../core/apiBase.js'
 import { z } from 'zod'
 import type {
   AestheticProduct, GroomingRoutine, GroomingSchedule,
@@ -8,7 +9,7 @@ import {
   CreateWardrobeItemSchema, CreateOutfitIdeaSchema, CreateInspirationItemSchema,
 } from './schema'
 
-const BASE = '/api/aesthetics'
+const BASE = `${API_BASE}/api/aesthetics`
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)

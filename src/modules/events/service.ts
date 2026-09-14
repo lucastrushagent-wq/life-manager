@@ -1,8 +1,9 @@
+import { API_BASE } from '../../core/apiBase.js'
 import type { CalendarEvent } from './types'
 import type { z } from 'zod'
 import type { CreateEventSchema, UpdateEventSchema } from './schema'
 
-const BASE = '/api/events'
+const BASE = `${API_BASE}/api/events`
 
 async function req<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)

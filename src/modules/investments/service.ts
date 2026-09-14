@@ -1,6 +1,7 @@
+import { API_BASE } from '../../core/apiBase.js'
 import type { Holding } from './types'
 
-const API = '/api/investments'
+const API = `${API_BASE}/api/investments`
 
 export const investmentsService = {
   async getHoldings(): Promise<Holding[]> {

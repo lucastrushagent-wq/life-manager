@@ -1,8 +1,9 @@
+import { API_BASE } from '../../core/apiBase.js'
 import { z } from 'zod'
 import type { ResumeFile, PerformanceReview, WorkHistoryEntry, ProfessionalSkill, ProfessionalCert } from './types'
 import { CreateReviewSchema, CreateWorkHistorySchema, CreateSkillSchema, CreateCertSchema } from './schema'
 
-const BASE = '/api/professional'
+const BASE = `${API_BASE}/api/professional`
 
 async function req<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)

@@ -1,9 +1,10 @@
+import { API_BASE } from '../../core/apiBase.js'
 import { z } from 'zod'
 import type { Todo, RecurringTodo } from './types'
 import { CreateTodoSchema, CreateRecurringTodoSchema } from './schema'
 
-const API = '/api/todos'
-const RECURRING_API = '/api/recurring-todos'
+const API = `${API_BASE}/api/todos`
+const RECURRING_API = `${API_BASE}/api/recurring-todos`
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)

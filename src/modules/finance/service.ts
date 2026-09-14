@@ -1,8 +1,9 @@
+import { API_BASE } from '../../core/apiBase.js'
 import { z } from 'zod'
 import type { FinanceAccount, NetWorthSnapshot, NetWorthTarget } from './types'
 import { CreateFinanceAccountSchema, CreateNetWorthTargetSchema } from './schema'
 
-const BASE = '/api/finance/accounts'
+const BASE = `${API_BASE}/api/finance/accounts`
 
 export const financeService = {
   async getAll(): Promise<FinanceAccount[]> {
