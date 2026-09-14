@@ -39,6 +39,13 @@ The API server listens on **3001**. In dev, Vite proxies `/api` to it
 (`vite.config.ts`). In production the same Express process serves `dist/`, so
 `/api` is same-origin.
 
+It also listens on **3002** (`AGENT_PORT`), bound to loopback only and exempt
+from Basic Auth — this is how an agent running on the same machine reaches the
+API. The exemption keys on `req.socket.localPort`, **not** on the remote address:
+`cloudflared` forwards public traffic to 3001 over loopback, so every tunnel
+request also appears to come from 127.0.0.1. Keying on the accepting socket's
+port is what keeps the tunnel authenticated. Set `AGENT_PORT=0` to disable.
+
 Deployed on an always-on Mac Mini, exposed via a Cloudflare Tunnel at
 `lucastrush.com`, gated by Basic Auth. Installed as a PWA on iOS.
 
@@ -124,6 +131,12 @@ agents bypass it.
   `http://localhost:3001/...`. An absolute localhost URL works on the host machine
   but breaks for every remote client: the phone resolves `localhost` to itself.
   This has bitten this project before.
+- **The DB is opened by more than one process** — the server, plus any local
+  agent. It runs in WAL mode (set in `db.ts`) so readers and one writer can
+  proceed concurrently; the default rollback journal locks the whole file and
+  causes `SQLITE_BUSY`. Prefer the API over direct writes regardless: several
+  endpoints carry logic the tables don't (`saveSnapshot()` after finance writes,
+  the claim/on-sale/expiring derivations), and direct SQL silently skips it.
 - **Migrations are additive** — `server/db.ts` runs `CREATE TABLE IF NOT EXISTS`
   for every table, then guarded `ALTER TABLE ... ADD COLUMN` blocks. Never drop
   or rewrite a column; the production DB is live and `data/` is gitignored, so a

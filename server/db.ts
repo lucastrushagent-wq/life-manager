@@ -11,6 +11,13 @@ fs.mkdirSync(dataDir, { recursive: true })
 
 export const db = new Database(dbPath)
 
+// Write-Ahead Logging. The default rollback journal takes an exclusive lock on the
+// whole database for every write, which blocks readers — and this file is now read
+// by more than one process (the server, plus any agent running on the same machine).
+// WAL lets readers and a single writer proceed concurrently. The setting is stored
+// on the database file itself, so it persists once applied.
+db.pragma('journal_mode = WAL')
+
 // Create tables first
 db.exec(`
   CREATE TABLE IF NOT EXISTS todos (
