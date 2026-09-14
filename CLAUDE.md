@@ -255,6 +255,41 @@ in anything this server imports will corrupt the stream.
 
 ---
 
+## Generated todos
+
+Items due in other modules are **materialised as real todos** rather than surfaced
+as a derived list — so they behave like any other task: checkbox, priority,
+time-boxing, one uniform list for the agent to walk.
+
+That design has one hazard, and the code exists to close it: **ticking "Book
+dentist" is not the same fact as having been to the dentist.** Left alone, the
+provider would still be past its cadence and the todo would regenerate forever.
+Two mechanisms prevent it, and both are required:
+
+1. **Dedupe on generation** — `(sourceType, sourceId)` is checked against any
+   open todo, so an outstanding item is never duplicated.
+2. **Write back on completion** — `completeSource()` in `server/generatedTodos.ts`,
+   called from the todo PATCH handler, logs the provider visit or marks the vet
+   follow-up handled. The source stops being due, so it stops regenerating.
+
+| Source | Generates when | Completing it writes back |
+|---|---|---|
+| `provider` | past `frequencyDays` since `lastVisit`, or no visit recorded | sets `lastVisit` to today |
+| `tweed_followup` | `followUpDate` reached and not yet handled | sets `followUpCompletedAt` |
+
+Re-opening a Tweed follow-up clears `followUpCompletedAt`. Re-opening a provider
+todo deliberately does **not** unwind `lastVisit` — that date may record a real
+appointment, and guessing the prior value would be worse than leaving it.
+
+Generation runs at 5:30am (before the 6am briefing) and via
+`POST /api/todos/generate-sourced` / the `todo_generate_sourced` tool. It is
+idempotent, so a missed run just catches up.
+
+Because completing one of these mutates another record, the UI marks them with an
+amber source badge whose tooltip states the side effect.
+
+---
+
 ## Calendar: who does what
 
 **The agent creates calendar events, not the Life Manager.** Claude Desktop has a

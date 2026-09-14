@@ -91,6 +91,14 @@ export const todoService = {
   deleteRecurring(id: string): Promise<void> {
     return request<void>(`${RECURRING_API}/${id}`, { method: 'DELETE' })
   },
+  /**
+   * Materialise todos for anything now due in another module. Idempotent — a
+   * source with an open todo is skipped, so this is safe to call on every load.
+   */
+  generateSourced(): Promise<{ created: number; items: { title: string; sourceType: string }[] }> {
+    return request(`${API}/generate-sourced`, { method: 'POST' })
+  },
+
   generateRecurring(): Promise<Todo[]> {
     return request<Todo[]>(`${RECURRING_API}/generate`, { method: 'POST' })
   },

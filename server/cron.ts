@@ -3,6 +3,7 @@ import { sendMorningEmail } from './emailService.js'
 import { syncGarminData } from './garmin.js'
 import { syncYnab } from './ynab.js'
 import { runBackup } from './backup.js'
+import { generateSourcedTodos } from './generatedTodos.js'
 
 export function startCronJobs() {
   // Default: 6:00am daily. Override with EMAIL_SEND_TIME env var (cron syntax, e.g. "0 7 * * *" for 7am)
@@ -60,6 +61,20 @@ export function startCronJobs() {
     }, { timezone: process.env.TZ ?? 'America/New_York' })
     console.log('[cron] Backup scheduled: 0 3 * * *')
   }
+
+  // Materialise due items just before the 6am briefing, so the day starts with a
+  // complete list. Idempotent, so a missed run simply catches up the next day.
+  cron.schedule('30 5 * * *', () => {
+    try {
+      const created = generateSourcedTodos()
+      if (created.length) {
+        console.log(`[cron] Generated ${created.length} todo(s): ${created.map(c => c.title).join(', ')}`)
+      }
+    } catch (e: any) {
+      console.error('[cron] Sourced todo generation failed:', e.message)
+    }
+  }, { timezone: process.env.TZ ?? 'America/New_York' })
+  console.log('[cron] Sourced todo generation scheduled: 30 5 * * *')
 }
 
 async function runMorningEmail() {

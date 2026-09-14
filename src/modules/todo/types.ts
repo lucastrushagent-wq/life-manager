@@ -20,6 +20,9 @@ export interface Todo {
   scheduledEndAt?: string
   /** Reference to the event in the calendar itself, so it can be moved or cancelled later. */
   calendarEventId?: string
+  /** Set when this todo was generated from another module rather than created by hand. */
+  sourceType?: 'provider' | 'tweed_followup'
+  sourceId?: string
 }
 
 export interface RecurringTodo {

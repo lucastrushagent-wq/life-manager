@@ -11,6 +11,16 @@ export const todoTools: McpTool[] = [
     handler: async () => todoService.getAll(),
   },
   {
+    name: 'todo_generate_sourced',
+    description:
+      'Create todos for anything now due elsewhere — a service provider past its visit ' +
+      'cadence, a Tweed vet follow-up. Safe to call repeatedly: a source that already has ' +
+      'an open todo is skipped. Completing one of these writes back to its source, so the ' +
+      'item stops being due rather than regenerating.',
+    inputSchema: z.object({}),
+    handler: async () => todoService.generateSourced(),
+  },
+  {
     name: 'todo_list_unscheduled',
     description:
       'Open todos that have no calendar block yet — the work list for time-boxing. ' +

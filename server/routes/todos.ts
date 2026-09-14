@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { db } from '../db.js'
+import { generateSourcedTodos, completeSource, reopenSource } from '../generatedTodos.js'
 
 const router = Router()
 
@@ -20,6 +21,8 @@ function toTodo(row: Row) {
     scheduledAt: row.scheduledAt ?? undefined,
     scheduledEndAt: row.scheduledEndAt ?? undefined,
     calendarEventId: row.calendarEventId ?? undefined,
+    sourceType: row.sourceType ?? undefined,
+    sourceId: row.sourceId ?? undefined,
   }
 }
 
@@ -44,6 +47,13 @@ router.get('/', (req, res) => {
   res.json(rows.map(toTodo))
 })
 
+// Materialise todos for anything now due elsewhere (providers past their cadence,
+// vet follow-ups). Idempotent — an open todo already exists for a source is skipped.
+router.post('/generate-sourced', (_req, res) => {
+  const created = generateSourcedTodos()
+  res.json({ created: created.length, items: created })
+})
+
 router.post('/', (req, res) => {
   const { id, title, description, completed, dueDate, priority, tags, createdAt } = req.body
   db.prepare(`
@@ -61,6 +71,14 @@ router.patch('/:id', (req, res) => {
 
   const patch = req.body
   const nowCompleting = patch.completed === true && row.completed === 0
+  const nowReopening = patch.completed === false && row.completed === 1
+
+  // The write-back that keeps a generated todo from immediately regenerating:
+  // completing "Book dentist" logs the visit, which moves the provider's cadence
+  // forward so it stops being due.
+  let sourceEffect: string | null = null
+  if (nowCompleting) sourceEffect = completeSource(row.sourceType as string | null, row.sourceId as string | null)
+  if (nowReopening) sourceEffect = reopenSource(row.sourceType as string | null, row.sourceId as string | null)
   const updated = {
     title:       patch.title       ?? row.title,
     description: patch.description ?? row.description ?? null,
@@ -84,7 +102,7 @@ router.patch('/:id', (req, res) => {
     updated.scheduledAt, updated.scheduledEndAt, updated.calendarEventId, id)
 
   const result = db.prepare('SELECT * FROM todos WHERE id = ?').get(id) as Row
-  res.json(toTodo(result))
+  res.json({ ...toTodo(result), ...(sourceEffect ? { sourceEffect } : {}) })
 })
 
 router.delete('/:id', (req, res) => {

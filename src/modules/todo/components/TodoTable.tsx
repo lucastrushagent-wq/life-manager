@@ -1,5 +1,5 @@
 import { useState, KeyboardEvent } from 'react'
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Calendar, Pencil, X, CalendarCheck } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Calendar, Pencil, X, CalendarCheck, Link2 } from 'lucide-react'
 import type { Priority, SortDir, SortField, Todo } from '../types'
 
 interface Props {
@@ -10,6 +10,30 @@ interface Props {
   onToggle: (id: string) => void
   onUpdate: (id: string, patch: Partial<Omit<Todo, 'id' | 'createdAt'>>) => void
   onDelete: (id: string) => void
+}
+
+const SOURCE_LABELS: Record<string, { label: string; effect: string }> = {
+  provider: { label: 'Provider', effect: 'Completing this logs a visit, moving the provider\u2019s next-due date forward' },
+  tweed_followup: { label: 'Tweed', effect: 'Completing this marks the vet follow-up as handled' },
+}
+
+/**
+ * Marks a todo generated from another module. Worth surfacing because completing
+ * one of these writes back to its source record — a side effect you should be
+ * able to see before ticking the box.
+ */
+function SourceBadge({ todo }: { todo: Todo }) {
+  if (!todo.sourceType) return null
+  const meta = SOURCE_LABELS[todo.sourceType]
+  if (!meta) return null
+  return (
+    <span
+      title={meta.effect}
+      className="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 flex items-center gap-1"
+    >
+      <Link2 className="w-3 h-3" />{meta.label}
+    </span>
+  )
 }
 
 /** Shows when a todo has been blocked out on the calendar by the agent. */
@@ -183,6 +207,7 @@ export function TodoTable({ todos, sortField, sortDir, onToggleSort, onToggle, o
                       {parseLocalDate(todo.dueDate).toLocaleDateString()}
                     </span>
                   )}
+                  <SourceBadge todo={todo} />
                   <ScheduledBadge todo={todo} />
                   {todo.tags.map(tag => (
                     <span key={tag} className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full">{tag}</span>
@@ -273,6 +298,7 @@ export function TodoTable({ todos, sortField, sortDir, onToggleSort, onToggle, o
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1 items-center">
+                      <SourceBadge todo={todo} />
                       <ScheduledBadge todo={todo} />
                       {todo.tags.map(tag => (
                         <span key={tag} className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full">{tag}</span>

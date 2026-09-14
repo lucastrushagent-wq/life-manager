@@ -644,6 +644,12 @@ if (!todoCols.includes('deletedAt')) db.exec("ALTER TABLE todos ADD COLUMN delet
 if (!todoCols.includes('scheduledAt')) db.exec("ALTER TABLE todos ADD COLUMN scheduledAt TEXT")
 if (!todoCols.includes('scheduledEndAt')) db.exec("ALTER TABLE todos ADD COLUMN scheduledEndAt TEXT")
 if (!todoCols.includes('calendarEventId')) db.exec("ALTER TABLE todos ADD COLUMN calendarEventId TEXT")
+// Todos generated from another module (a provider past its cadence, a vet
+// follow-up). sourceType+sourceId both dedupes generation and tells completion
+// where to write back — without the write-back the source record would still
+// look due and the todo would immediately regenerate.
+if (!todoCols.includes('sourceType')) db.exec("ALTER TABLE todos ADD COLUMN sourceType TEXT")
+if (!todoCols.includes('sourceId')) db.exec("ALTER TABLE todos ADD COLUMN sourceId TEXT")
 
 // Finance account migrations
 const financeAccountCols = (db.prepare("PRAGMA table_info(financeAccounts)").all() as { name: string }[]).map(c => c.name)
@@ -695,6 +701,17 @@ if (wardrobeCols.includes('imageUrl') && !wardrobeCols.includes('productUrl')) {
 const eventCols = (db.prepare("PRAGMA table_info(calendarEvents)").all() as { name: string }[]).map(c => c.name)
 if (!eventCols.includes('annual')) db.exec("ALTER TABLE calendarEvents ADD COLUMN annual INTEGER NOT NULL DEFAULT 0")
 if (!eventCols.includes('ticketsOnSaleDate')) db.exec("ALTER TABLE calendarEvents ADD COLUMN ticketsOnSaleDate TEXT")
+
+// Tweed follow-up completion. Recorded rather than clearing followUpDate, so the
+// history of "a follow-up was due on X and handled on Y" survives.
+const tweedMedicalCols = (db.prepare("PRAGMA table_info(tweedMedical)").all() as { name: string }[]).map(c => c.name)
+if (!tweedMedicalCols.includes('followUpCompletedAt')) db.exec("ALTER TABLE tweedMedical ADD COLUMN followUpCompletedAt TEXT")
+
+// Service provider scheduling — mirrors the todo fields so a booking can be
+// time-boxed on the calendar and the event referenced later.
+const providerSchedCols = (db.prepare("PRAGMA table_info(serviceProviders)").all() as { name: string }[]).map(c => c.name)
+if (!providerSchedCols.includes('scheduledAt')) db.exec("ALTER TABLE serviceProviders ADD COLUMN scheduledAt TEXT")
+if (!providerSchedCols.includes('calendarEventId')) db.exec("ALTER TABLE serviceProviders ADD COLUMN calendarEventId TEXT")
 
 // YNAB integration migrations
 const financeAccountColNames = (db.prepare("PRAGMA table_info(financeAccounts)").all() as { name: string }[]).map(c => c.name)
