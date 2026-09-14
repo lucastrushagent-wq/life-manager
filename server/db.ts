@@ -465,6 +465,28 @@ db.exec(`
     updatedAt         TEXT NOT NULL
   );
 
+  -- Calendar invitations the agent has sent. One row per invitation; updates and
+  -- cancellations bump sequence on the same row rather than inserting a new one,
+  -- because iCalendar identifies an event by uid and clients only accept a change
+  -- when sequence increases.
+  CREATE TABLE IF NOT EXISTS calendarInvites (
+    id          TEXT PRIMARY KEY,
+    uid         TEXT NOT NULL UNIQUE,
+    sequence    INTEGER NOT NULL DEFAULT 0,
+    summary     TEXT NOT NULL,
+    description TEXT,
+    location    TEXT,
+    startsAt    TEXT NOT NULL,
+    endsAt      TEXT NOT NULL,
+    allDay      INTEGER NOT NULL DEFAULT 0,
+    attendee    TEXT NOT NULL,
+    organizer   TEXT NOT NULL,
+    status      TEXT NOT NULL DEFAULT 'sent',
+    error       TEXT,
+    createdAt   TEXT NOT NULL,
+    updatedAt   TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS techDevices (
     id             TEXT PRIMARY KEY,
     name           TEXT NOT NULL,

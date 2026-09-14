@@ -24,6 +24,7 @@ import serviceProvidersRouter from './routes/serviceProviders.js'
 import fitnessEventsRouter from './routes/fitnessEvents.js'
 import technologyRouter from './routes/technology.js'
 import tweedRouter from './routes/tweed.js'
+import calendarRouter from './routes/calendar.js'
 import { startCronJobs } from './cron.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -89,6 +90,7 @@ app.use('/api/service-providers', serviceProvidersRouter)
 app.use('/api/fitness-events', fitnessEventsRouter)
 app.use('/api/technology', technologyRouter)
 app.use('/api/tweed', tweedRouter)
+app.use('/api/calendar', calendarRouter)
 
 if (isProd) {
   const distDir = path.join(__dirname, '..', 'dist')

@@ -13,6 +13,7 @@ import { aestheticsTools } from '../modules/aesthetics/tools'
 import { homeTools } from '../modules/home/tools'
 import { professionalTools } from '../modules/professional/tools'
 import { eventsTools } from '../modules/events/tools'
+import { calendarTools } from '../modules/calendar/tools'
 import { spiritualityTools } from '../modules/spirituality/tools'
 import { learningTools } from '../modules/learning/tools'
 import { travelTools } from '../modules/travel/tools'
@@ -45,6 +46,7 @@ export const mcpTools: McpTool[] = [
   ...homeTools,
   ...professionalTools,
   ...eventsTools,
+  ...calendarTools,
   ...spiritualityTools,
   ...learningTools,
   ...travelTools,

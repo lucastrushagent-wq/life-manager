@@ -98,6 +98,8 @@ server/garmin.ts       Garmin Connect sync
 server/ynab.ts         YNAB sync
 server/mcp.ts          stdio MCP server (npm run mcp)
 server/backup.ts       nightly SQLite snapshot (npm run backup)
+server/calendar.ts     calendar invitations by email (iMIP)
+server/ics.ts          RFC 5545 iCalendar writer
 server/email*.ts       Morning briefing email
 ```
 
@@ -250,6 +252,37 @@ reads. A withheld tool returns a message saying so, distinct from "unknown tool"
 
 **stdout is the protocol channel** — log to stderr only. A stray `console.log`
 in anything this server imports will corrupt the stream.
+
+---
+
+## Calendar invitations
+
+`server/calendar.ts` sends invitations as email with an iCalendar attachment —
+which is iMIP, how invitations actually travel between systems. Consequences
+worth knowing:
+
+- **No calendar credentials.** It reuses the SMTP account already set up for the
+  morning briefing (`EMAIL_USER`/`EMAIL_PASS`/`EMAIL_TO`), so there is nothing
+  new to authorise.
+- **The permission model holds.** The agent never writes to a personal calendar;
+  it sends from its own address and the recipient accepts. Read-only stays
+  read-only.
+- **Recipient-agnostic.** Works whether the far end is Google, iCloud or Outlook.
+
+An invitation is identified by `uid`, and an amendment is only honoured when
+`sequence` rises — so updates and cancellations reuse the row and increment it,
+rather than inserting a new one. `POST /api/calendar/invites?dryRun=true` returns
+the generated `.ics` **without writing anything**: a preview that persisted would
+advance the sequence and could make a later real update look stale to the client.
+
+`server/ics.ts` is a hand-rolled RFC 5545 writer. The fiddly parts are explicit
+and unit-checked: CRLF endings, folding at 75 **octets** on character boundaries
+so multi-byte text is never split, TEXT escaping of `\ ; , \n`, and UTC
+timestamps to avoid needing VTIMEZONE. Note folding can split a line mid-token —
+`RSVP=TRUE` legitimately wraps — so assert against unfolded output.
+
+`src/modules/calendar/` is the one module with **no tab**: service and tools
+only, agent-facing. It is registered in `src/core/mcp.ts` but not `tabs.ts`.
 
 ---
 
