@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "start": "NODE_ENV=production tsx server/index.ts",
     "preview": "vite preview",
-    "mcp": "tsx server/mcp.ts"
+    "mcp": "tsx server/mcp.ts",
+    "backup": "tsx server/backupCli.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",

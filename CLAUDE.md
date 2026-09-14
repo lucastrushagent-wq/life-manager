@@ -97,6 +97,7 @@ server/routes/*.ts     One router per domain, mounted at /api/<name>
 server/garmin.ts       Garmin Connect sync
 server/ynab.ts         YNAB sync
 server/mcp.ts          stdio MCP server (npm run mcp)
+server/backup.ts       nightly SQLite snapshot (npm run backup)
 server/email*.ts       Morning briefing email
 ```
 
@@ -260,9 +261,23 @@ in anything this server imports will corrupt the stream.
 | Garmin Connect | `GARMIN_EMAIL`, `GARMIN_PASSWORD` | 8pm daily |
 | YNAB | `YNAB_API_KEY`, `YNAB_BUDGET_ID` (optional) | 2am daily |
 | Basic Auth | `BASIC_AUTH_USER`, `BASIC_AUTH_PASS` | — (active when both set) |
+| Database backup | `BACKUP_DIR`, `BACKUP_RETAIN`, `BACKUP_ENABLED` | 3am daily |
 
 All are **opt-in**: each cron job returns early if its env vars are absent, so the
 app runs fine without any of them. `.env` is gitignored.
+
+**Backups are the exception — on by default** (`BACKUP_ENABLED=false` disables).
+They need no credentials, and `data/` is gitignored, so losing that file is
+unrecoverable from the repo. `runBackup()` uses SQLite's online backup API, not a
+file copy: in WAL mode the committed state spans the `.db` and its `-wal`, so `cp`
+of the `.db` alone can miss recent transactions or catch a torn page. Each snapshot
+is verified with `integrity_check` before it replaces the day's file, then
+checkpointed and switched to a rollback journal so it is a single portable file.
+Retention prunes by the date in the filename, not mtime, which survives copying.
+
+`BACKUP_DIR` defaults to `data/backups` — **same disk as the database**, which
+covers corruption and accidental deletion but not drive failure. Point it at a
+synced or external volume for off-machine copies.
 
 Timezone for all cron jobs comes from `TZ`, defaulting to `America/New_York`.
 

@@ -2,6 +2,7 @@ import cron from 'node-cron'
 import { sendMorningEmail } from './emailService.js'
 import { syncGarminData } from './garmin.js'
 import { syncYnab } from './ynab.js'
+import { runBackup } from './backup.js'
 
 export function startCronJobs() {
   // Default: 6:00am daily. Override with EMAIL_SEND_TIME env var (cron syntax, e.g. "0 7 * * *" for 7am)
@@ -40,6 +41,25 @@ export function startCronJobs() {
     }
   }, { timezone: process.env.TZ ?? 'America/New_York' })
   console.log('[cron] YNAB sync scheduled: 0 2 * * *')
+
+  // Nightly backup at 3am — after the YNAB sync at 2am, so the snapshot includes
+  // the night's imports. Unlike the sync jobs this is not opt-in: it needs no
+  // credentials and losing this database is unrecoverable (data/ is gitignored).
+  if (process.env.BACKUP_ENABLED !== 'false') {
+    cron.schedule('0 3 * * *', async () => {
+      try {
+        const r = await runBackup()
+        const mb = (r.bytes / 1024 / 1024).toFixed(2)
+        console.log(
+          `[cron] Backup done: ${r.file} (${mb} MB, ${r.tables} tables, ${r.durationMs}ms)` +
+          (r.pruned.length ? `, pruned ${r.pruned.length}` : '')
+        )
+      } catch (e: any) {
+        console.error('[cron] Backup FAILED:', e.message)
+      }
+    }, { timezone: process.env.TZ ?? 'America/New_York' })
+    console.log('[cron] Backup scheduled: 0 3 * * *')
+  }
 }
 
 async function runMorningEmail() {
