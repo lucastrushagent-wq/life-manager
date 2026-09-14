@@ -16,7 +16,22 @@ export const db = new Database(dbPath)
 // by more than one process (the server, plus any agent running on the same machine).
 // WAL lets readers and a single writer proceed concurrently. The setting is stored
 // on the database file itself, so it persists once applied.
-db.pragma('journal_mode = WAL')
+//
+// Verify rather than assume: `PRAGMA journal_mode = X` returns the resulting mode
+// instead of throwing when it cannot be applied. WAL needs shared memory, which
+// some filesystems (network shares, and bind mounts into a VM or container) do not
+// provide — there, this silently stays on the rollback journal and the concurrency
+// guarantee above quietly does not hold. Warn loudly instead of failing quietly.
+const journalMode = db.pragma('journal_mode = WAL', { simple: true })
+if (journalMode !== 'wal') {
+  console.warn(
+    `[db] WAL could NOT be enabled — journal_mode is "${journalMode}". Every write ` +
+    `will take an exclusive lock on the whole database, so a second process ` +
+    `(a local agent, another server) can fail with SQLITE_BUSY or, across a bind ` +
+    `mount where locking is not coordinated, corrupt the file. This usually means ` +
+    `the database sits on a filesystem without shared-memory support.`
+  )
+}
 
 // Create tables first
 db.exec(`
