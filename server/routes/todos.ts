@@ -17,6 +17,9 @@ function toTodo(row: Row) {
     createdAt: row.createdAt,
     completedAt: row.completedAt ?? undefined,
     deletedAt: row.deletedAt ?? undefined,
+    scheduledAt: row.scheduledAt ?? undefined,
+    scheduledEndAt: row.scheduledEndAt ?? undefined,
+    calendarEventId: row.calendarEventId ?? undefined,
   }
 }
 
@@ -29,8 +32,15 @@ router.get('/archive', (_req, res) => {
   res.json(rows.map(toTodo))
 })
 
-router.get('/', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM todos WHERE deletedAt IS NULL ORDER BY createdAt DESC').all() as Row[]
+// ?scheduled=false returns the work list for time-boxing: open items with no
+// calendar slot yet. ?scheduled=true returns those already blocked out.
+router.get('/', (req, res) => {
+  const { scheduled } = req.query as Record<string, string>
+  let sql = 'SELECT * FROM todos WHERE deletedAt IS NULL'
+  if (scheduled === 'false') sql += ' AND scheduledAt IS NULL AND completed = 0'
+  if (scheduled === 'true') sql += ' AND scheduledAt IS NOT NULL'
+  sql += ' ORDER BY createdAt DESC'
+  const rows = db.prepare(sql).all() as Row[]
   res.json(rows.map(toTodo))
 })
 
@@ -59,12 +69,19 @@ router.patch('/:id', (req, res) => {
     priority:    patch.priority    ?? row.priority,
     tags:        JSON.stringify(patch.tags ?? JSON.parse(row.tags as string)),
     completedAt: nowCompleting ? new Date().toISOString() : (row.completedAt ?? null),
+    // null is meaningful here — it is how the agent un-schedules an item — so
+    // these use `in patch` rather than ?? , which would treat null as absent.
+    scheduledAt: 'scheduledAt' in patch ? (patch.scheduledAt ?? null) : (row.scheduledAt ?? null),
+    scheduledEndAt: 'scheduledEndAt' in patch ? (patch.scheduledEndAt ?? null) : (row.scheduledEndAt ?? null),
+    calendarEventId: 'calendarEventId' in patch ? (patch.calendarEventId ?? null) : (row.calendarEventId ?? null),
   }
 
   db.prepare(`
-    UPDATE todos SET title = ?, description = ?, completed = ?, dueDate = ?, priority = ?, tags = ?, completedAt = ?
+    UPDATE todos SET title = ?, description = ?, completed = ?, dueDate = ?, priority = ?, tags = ?, completedAt = ?,
+      scheduledAt = ?, scheduledEndAt = ?, calendarEventId = ?
     WHERE id = ?
-  `).run(updated.title, updated.description, updated.completed, updated.dueDate, updated.priority, updated.tags, updated.completedAt, id)
+  `).run(updated.title, updated.description, updated.completed, updated.dueDate, updated.priority, updated.tags, updated.completedAt,
+    updated.scheduledAt, updated.scheduledEndAt, updated.calendarEventId, id)
 
   const result = db.prepare('SELECT * FROM todos WHERE id = ?').get(id) as Row
   res.json(toTodo(result))

@@ -636,6 +636,14 @@ const todoCols = (db.prepare("PRAGMA table_info(todos)").all() as { name: string
 if (!todoCols.includes('recurringTodoId')) db.exec("ALTER TABLE todos ADD COLUMN recurringTodoId TEXT")
 if (!todoCols.includes('completedAt')) db.exec("ALTER TABLE todos ADD COLUMN completedAt TEXT")
 if (!todoCols.includes('deletedAt')) db.exec("ALTER TABLE todos ADD COLUMN deletedAt TEXT")
+// Calendar time-boxing. The Life Manager records THAT a todo is scheduled and
+// where; the agent's own calendar connector is what actually creates the event.
+// calendarEventId is the external reference back to it — without that the agent
+// could tell an item was scheduled but could not move or cancel the event when
+// the todo changes.
+if (!todoCols.includes('scheduledAt')) db.exec("ALTER TABLE todos ADD COLUMN scheduledAt TEXT")
+if (!todoCols.includes('scheduledEndAt')) db.exec("ALTER TABLE todos ADD COLUMN scheduledEndAt TEXT")
+if (!todoCols.includes('calendarEventId')) db.exec("ALTER TABLE todos ADD COLUMN calendarEventId TEXT")
 
 // Finance account migrations
 const financeAccountCols = (db.prepare("PRAGMA table_info(financeAccounts)").all() as { name: string }[]).map(c => c.name)

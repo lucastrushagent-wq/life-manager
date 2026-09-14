@@ -15,6 +15,11 @@ export interface Todo {
   recurringTodoId?: string
   completedAt?: string
   deletedAt?: string
+  /** Start of the calendar block, once the agent has time-boxed this. */
+  scheduledAt?: string
+  scheduledEndAt?: string
+  /** Reference to the event in the calendar itself, so it can be moved or cancelled later. */
+  calendarEventId?: string
 }
 
 export interface RecurringTodo {

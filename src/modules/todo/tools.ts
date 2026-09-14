@@ -11,6 +11,44 @@ export const todoTools: McpTool[] = [
     handler: async () => todoService.getAll(),
   },
   {
+    name: 'todo_list_unscheduled',
+    description:
+      'Open todos that have no calendar block yet — the work list for time-boxing. ' +
+      'Walk these, decide when each should happen, create the event with your own ' +
+      'calendar tools, then call todo_mark_scheduled so it stops appearing here.',
+    inputSchema: z.object({}),
+    handler: async () => todoService.getUnscheduled(),
+  },
+  {
+    name: 'todo_list_scheduled',
+    description: 'Todos already blocked out on the calendar, with their times and calendar event ids',
+    inputSchema: z.object({}),
+    handler: async () => todoService.getScheduled(),
+  },
+  {
+    name: 'todo_mark_scheduled',
+    description:
+      'Record that a todo has been time-boxed on the calendar. This does NOT create the ' +
+      'event — create it with your calendar tools first, then call this to remember it. ' +
+      'Pass calendarEventId so the event can be moved or cancelled later. Times are ISO 8601. ' +
+      'Pass scheduledAt: null to clear the block if the event was removed.',
+    inputSchema: z.object({
+      id: z.string(),
+      scheduledAt: z.string().nullable(),
+      scheduledEndAt: z.string().nullable().optional(),
+      calendarEventId: z.string().nullable().optional(),
+    }),
+    handler: async (input) => {
+      const { id, ...schedule } = input as {
+        id: string
+        scheduledAt: string | null
+        scheduledEndAt?: string | null
+        calendarEventId?: string | null
+      }
+      return todoService.setSchedule(id, schedule)
+    },
+  },
+  {
     name: 'todo_create',
     description: 'Create a new todo item',
     inputSchema: CreateTodoSchema,

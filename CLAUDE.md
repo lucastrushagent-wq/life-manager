@@ -255,11 +255,39 @@ in anything this server imports will corrupt the stream.
 
 ---
 
+## Calendar: who does what
+
+**The agent creates calendar events, not the Life Manager.** Claude Desktop has a
+Google Calendar connector with real two-way access — it can read availability and
+amend events in place, which an outbound `.ics` cannot. The division:
+
+| | |
+|---|---|
+| **Life Manager** | the memory — preferences and context before a booking, and the record that something was scheduled |
+| **Agent** | the action — creating, moving and cancelling the actual calendar event |
+
+Todos carry `scheduledAt` / `scheduledEndAt` / `calendarEventId`. The agent walks
+`todo_list_unscheduled`, time-boxes each with its own calendar tools, then calls
+`todo_mark_scheduled` to record it. `calendarEventId` is the part that matters:
+without it the agent knows an item is scheduled but cannot move or cancel the
+event when the todo changes. Passing `scheduledAt: null` clears the block.
+
+`PATCH /api/todos/:id` distinguishes absent from null for these three fields —
+`'scheduledAt' in patch` rather than `??` — so editing an unrelated field cannot
+silently wipe a schedule, and null can still clear it deliberately.
+
+---
+
 ## Calendar invitations
 
 `server/calendar.ts` sends invitations as email with an iCalendar attachment —
-which is iMIP, how invitations actually travel between systems. Consequences
-worth knowing:
+iMIP, how invitations actually travel between systems.
+
+**This is the fallback, not the main path.** Where the agent has a calendar
+connector it should create events directly. This exists for reminders derived
+from data only the Life Manager holds — a provider due by `frequencyDays`, a
+registration window opening — and for any runtime with no calendar access.
+Consequences worth knowing:
 
 - **No calendar credentials.** It reuses the SMTP account already set up for the
   morning briefing (`EMAIL_USER`/`EMAIL_PASS`/`EMAIL_TO`), so there is nothing

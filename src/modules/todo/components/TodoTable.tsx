@@ -1,5 +1,5 @@
 import { useState, KeyboardEvent } from 'react'
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Calendar, Pencil, X } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Calendar, Pencil, X, CalendarCheck } from 'lucide-react'
 import type { Priority, SortDir, SortField, Todo } from '../types'
 
 interface Props {
@@ -10,6 +10,24 @@ interface Props {
   onToggle: (id: string) => void
   onUpdate: (id: string, patch: Partial<Omit<Todo, 'id' | 'createdAt'>>) => void
   onDelete: (id: string) => void
+}
+
+/** Shows when a todo has been blocked out on the calendar by the agent. */
+function ScheduledBadge({ todo }: { todo: Todo }) {
+  if (!todo.scheduledAt) return null
+  const start = new Date(todo.scheduledAt)
+  if (isNaN(start.getTime())) return null
+  const time = start.toLocaleString(undefined, {
+    day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
+  })
+  return (
+    <span
+      title={todo.calendarEventId ? 'Time-boxed on your calendar' : 'Marked scheduled (no calendar event linked)'}
+      className="text-xs px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-700 flex items-center gap-1"
+    >
+      <CalendarCheck className="w-3 h-3" />{time}
+    </span>
+  )
 }
 
 const priorityStyles: Record<Priority, string> = {
@@ -165,6 +183,7 @@ export function TodoTable({ todos, sortField, sortDir, onToggleSort, onToggle, o
                       {parseLocalDate(todo.dueDate).toLocaleDateString()}
                     </span>
                   )}
+                  <ScheduledBadge todo={todo} />
                   {todo.tags.map(tag => (
                     <span key={tag} className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full">{tag}</span>
                   ))}
@@ -253,7 +272,8 @@ export function TodoTable({ todos, sortField, sortDir, onToggleSort, onToggle, o
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1 items-center">
+                      <ScheduledBadge todo={todo} />
                       {todo.tags.map(tag => (
                         <span key={tag} className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full">{tag}</span>
                       ))}

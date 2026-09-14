@@ -16,6 +16,35 @@ export const todoService = {
   getAll(): Promise<Todo[]> {
     return request<Todo[]>(API)
   },
+
+  /** Open todos with no calendar block yet — the work list for time-boxing. */
+  getUnscheduled(): Promise<Todo[]> {
+    return request<Todo[]>(`${API}?scheduled=false`)
+  },
+
+  getScheduled(): Promise<Todo[]> {
+    return request<Todo[]>(`${API}?scheduled=true`)
+  },
+
+  /**
+   * Record that a todo has been blocked out on the calendar. Pass null for
+   * scheduledAt to clear it — the agent's calendar connector creates and removes
+   * the actual event; this only remembers that it did.
+   */
+  setSchedule(
+    id: string,
+    schedule: { scheduledAt: string | null; scheduledEndAt?: string | null; calendarEventId?: string | null },
+  ): Promise<Todo> {
+    return request<Todo>(`${API}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scheduledAt: schedule.scheduledAt,
+        scheduledEndAt: schedule.scheduledEndAt ?? null,
+        calendarEventId: schedule.calendarEventId ?? null,
+      }),
+    })
+  },
   getArchive(): Promise<Todo[]> {
     return request<Todo[]>(`${API}/archive`)
   },
